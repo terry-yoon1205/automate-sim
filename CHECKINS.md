@@ -52,9 +52,9 @@ IoT device management:
     ```
     
     
-    ## Check-in 2 (Week 3)
+## Check-in 2 (Week 3)
     
-    Tests for components will be written by whoever wrote the component itself.
+Tests for components will be written by whoever wrote the component itself.
 
 ### Jan 21 - 27
 Jan 26 - Check in 2 
