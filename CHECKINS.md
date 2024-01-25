@@ -50,3 +50,47 @@ IoT device management:
         }
     }
     ```
+    
+    
+    ## Check-in 2 (Week 3)
+    
+    Tests for components will be written by whoever wrote the component itself.
+
+### Jan 21 - 27
+Jan 26 - Check in 2 
+- Assigning roles (ALL)
+- Examples for DSL (ALL)
+### Jan 28 - Feb 3
+Feb 2 - Check in 3
+- Grammar (ALL)
+- AST (ALL)
+- Finish first user study (ALL)
+- Implementation
+  - Parser
+    - Richard
+    - Jeffery
+  - Evaluator
+    - Ning
+    - Terry
+    - Leo
+### Feb 4 - Feb 10
+Feb 9 - Check in 4
+- Plan for user study
+- Plan for tests
+- Finish bulk of implementation
+  - Parser
+    - Richard
+    - Jeffery
+  - Evaluator
+    - Ning
+    - Terry
+    - Leo
+### Feb 11 - Feb 17
+Feb 16 - Check in 5
+- Status of user study (ALL)
+- Possible changes to implementation (ALL)
+- Draft for video (ALL)
+### Feb 18 - Feb 24
+- Make a video (ALL)
+### Feb 25 - Feb 26
+Feb 26 - Due date
