@@ -53,44 +53,40 @@ IoT device management:
     
     
 ## Check-in 2 (Week 3)
-    
-Tests for components will be written by whoever wrote the component itself.
 
 ### Jan 21 - 27
-Jan 26 - Check in 2 
-- Assigning roles (ALL)
-- Examples for DSL (ALL)
+Jan 26 - Check-in 2 
+- All:
+  - Assign responsibilities for everyone.
+  - Create a complete example of the DSL, with all finalized language features.
+  - (Above are complete - progress so far.)
 ### Jan 28 - Feb 3
-Feb 2 - Check in 3
-- Grammar (ALL)
-- AST (ALL)
-- Finish first user study (ALL)
-- Implementation
-  - Parser
+Feb 2 - Check-in 3
+- All: 
+  - Define grammar rules of the DSL.
+  - Define the structure of the AST.
+  - Plan and finish the first user study.
+- Get started on the implementation.
+  - Parser: String containing DSL --> AST
     - Richard
     - Jeffery
-  - Evaluator
+  - Evaluator: AST --> working console application
     - Ning
     - Terry
     - Leo
+- Tests for components will be written by whoever wrote the component itself, as they will be the most familiar with
+  what the tests should be about.
+- With an agreed-upon definition of the AST, tests for the parser and evaluator components can be written independently
+  and the implementation can be done in parallel.
 ### Feb 4 - Feb 10
-Feb 9 - Check in 4
-- Plan for user study
-- Plan for tests
-- Finish bulk of implementation
-  - Parser
-    - Richard
-    - Jeffery
-  - Evaluator
-    - Ning
-    - Terry
-    - Leo
+Feb 9 - Check-in 4
+- All: Plan for the second user study.
+- Finish bulk of the implementation. Revise language design/tests/implementation based on results of the first user study.
 ### Feb 11 - Feb 17
-Feb 16 - Check in 5
-- Status of user study (ALL)
-- Possible changes to implementation (ALL)
-- Draft for video (ALL)
+Feb 16 - Check-in 5
+- All: Make a draft for the video.
+- Possibly make final changes to language design/tests/implementation based on the second user study.
 ### Feb 18 - Feb 24
-- Make a video (ALL)
+- All: Make the demo video.
 ### Feb 25 - Feb 26
 Feb 26 - Due date
