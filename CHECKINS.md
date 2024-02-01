@@ -6,52 +6,63 @@ IoT device management:
   1. Define types of devices, complete with a set of states a device of the defined type can have, as well as its initial state. Type hierarchy is possible.
   2. Build a mockup of the smart home. The user can define a room containing a set of devices which are of a certain type.
   3. Define actions that will be triggered upon the change of the specified device’s state. The action can contain if-conditions and loops.
-- Example:
-    ```
-    type Light {
-        ON,
-        OFF
-    }: OFF
-    
-    type SmallLight inherits Light {
-        DIMMED
-    }: OFF
-    
-    type Switch {
-        ON,
-        OFF
-    }: OFF
-    
+- Example (updated for Check-in 3):
+  ```
+  type Light {
+      enum power [ON, OFF]
+      string color 
+  }
   
-    room bedroom {
-        device bedroom_light of Light,
-        device bedroom_lamp of SmallLight
-    }
-    
-    room living_room {
-        device main_switch of Switch,
-        device living_light of Light
-    }
-    
-    
-    action turn_on_bedroom on living_light {
-        if living_light is ON {
-            set bedroom_light ON
-            set bedroom_lamp DIMMED
-        }
-    }
-    
-    action turn_off_all_lights on main_switch {
-        if main_switch is OFF {
-            set living_light OFF
-            for light of Light in bedroom {
-                set light OFF
-            }
-        }
-    }
-    ```
-    
-    
+  type SmallLight inherits Light {
+      enum power [DIMMED]
+  }
+  
+  type Switch {
+      enum state [ON, OFF]
+  }
+  
+  type Heater {
+      enum power [ON, OFF]
+      number level [0, 10]
+  }
+  
+  
+  room bedroom {
+      device bedroom_light of Light(OFF, "ffffff")
+      device bedroom_lamp of SmallLight(OFF, "ffebd9")
+      device bedroom_heater of Heater(OFF, 3)
+      device bedroom_switch of Switch(OFF)
+  }
+  
+  room living_room {
+      device main_light of Light(OFF, "ffffff")
+      device main_switch of Switch(OFF)
+      device main_heater of Heater(OFF, 3)
+  }
+
+  
+  action bedroom_all on bedroom_switch {
+      if bedroom_switch.state is ON {
+          set bedroom_light.power to ON
+          set bedroom_lamp.power to DIMMED
+          set bedroom_heater.power to ON
+      }
+  }
+  
+  action lights_all on main_switch {
+      if main_switch.power is OFF {
+          set main_light.power to OFF
+          for light of Light in bedroom {
+              set light.power to OFF
+          }
+      }
+  }
+  
+  action sync_heaters on main_heater {
+      set bedroom_heater.level to main_heater.level
+  }
+  ```
+
 ## Check-in 2 (Week 3)
 
 ### Jan 21 - 27
@@ -78,6 +89,11 @@ Feb 2 - Check-in 3
   what the tests should be about.
 - With an agreed-upon definition of the AST, tests for the parser and evaluator components can be written independently
   and the implementation can be done in parallel.
+- Invariants:
+  - Initial states must be defined for all devices, including inherited attributes.
+  - Subtypes must not be able to change definitions of inherited attributes. For enum attributes, a redefinition may be
+    done to specify additional states.
+  - Cannot refer to devices/rooms/types that hasn't been instantiated.
 ### Feb 4 - Feb 10
 Feb 9 - Check-in 4
 - All: Plan for the second user study.
