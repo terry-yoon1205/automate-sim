@@ -90,7 +90,7 @@ Feb 2 - Check-in 3
 - With an agreed-upon definition of the AST, tests for the parser and evaluator components can be written independently
   and the implementation can be done in parallel.
 - Invariants:
-  - Initial states must be defined for all devices, including inherited attributes.
+  - Initial states for all properties must be defined for a device upon initialization, including inherited properties.
   - Subtypes must not be able to change definitions of inherited attributes. For enum attributes, a redefinition may be
     done to specify additional states.
   - Cannot refer to devices/rooms/types that hasn't been instantiated.
@@ -106,3 +106,97 @@ Feb 16 - Check-in 5
 - All: Make the demo video.
 ### Feb 25 - Feb 26
 Feb 26 - Due date
+
+## Check-in 3 (Week 4)
+
+To improve upon our original design and introduce some complexity/dynamicity, we added string and number types for 
+device properties, which can hold any value of the specified type. The user is also able to set the value of a property 
+equal to the value of another property (from the same or different device), without directly specifying the literal 
+value.
+
+We explained the syntax of our language using the following template:
+
+```
+type <type_name> {
+    enum <enum_name> [state0, state1]
+    string <string_name>
+    number <number_name> [0, 10]
+    …
+}
+
+type <subtype_name> inherits <type_name> {
+    enum <enum_name> [state2]
+    string <diff_string_name>
+}
+
+room <room_name> {
+    device device_name of <type_name>(state0, “string”, 0)
+    …
+}
+
+action <action_name> on <device_name> {
+    set <device__name>.<property_name> to <value>
+
+	if <device__name>.<property_name> is <state> {
+		…	
+    }
+
+    for <variable_name> of <type> in <room_name> {
+        …
+    }
+    …
+}
+```
+
+We also clarified some additional invariants and conditions:
+- Initial states for all properties must be defined for a device upon initialization, including inherited properties.
+- You cannot refer to devices/rooms/types that haven't been instantiated.
+- Subtypes can’t change the definition of properties inherited from its supertype, but for enum properties more states 
+  may be added.
+- Enum properties must specify at least 1 state, and number properties must specify a range: a minimum and a maximum 
+  value. String properties will not have anything additional other than the name declaration; initial values are 
+  specified per-device.
+- Devices can only be declared within a room declaration.
+- If-conditions and for loops can only appear within an action.
+
+We presented a diagram of our example home and the automations we wanted, and asked them to write the necessary 
+definitions using our language to make the automations happen.
+
+![userstudy.png](userstudy.png)
+
+Devices:
+- Light: On or off, off by default.
+- Lamp: On, off, or dimmed. A type of light.
+- TV: On or off. Can also be muted or unmuted.
+- Heater: On or off, with an adjustable heat level 0 to 10. On by default.
+- Switch: On or off. Off by default.
+- Door sensor: On when you're in the room, off otherwise.
+
+All:
+- When the heat level of any of the heaters is changed, we want the heat level of all other heaters to change accordingly (so that they all have the same heat level).
+
+Entrance:
+- When we walk into the entrance, we want the main lights of all rooms to turn on. The main switch should be turned on also.
+- When the main switch is off, it should turn off all main lights.
+
+Living Room:
+- When we walk into the living room, the living room light and the smart TV should automatically turn on.
+- The living room switch should only control the living room main light.
+
+Bedroom:
+- When we walk into the bedroom, the bedroom light should automatically turn on.
+- When the bedroom switch is off, it should turn off the bedroom main light.
+- When the bedroom main light is turned on, the bedroom lamps should turn off. When the bedroom main light is turned off, the lamps should turn on.
+- When the lamps are dimmed, the living room TV should be muted and the color of the lamps should change to a warmer white color.
+
+Bathroom:
+- When we walk into the bathroom, the bathroom light should automatically turn on. When we exit the bathroom, the bathroom light should turn off.
+
+Some notes from the study:
+- The user noted that the language syntax is relatively straightforward and easy to think about, and translating the instructions for the automations to the DSL code seemed easy.
+- While writing the actions, the user said that it seemed weird that any state change of the device specified in the action declaration can trigger the action. They stated that maybe change of only the relevant property should trigger the action.
+- To implement the heater level sync, the user needed to declare two actions that are almost identical, just conditioned on the state change of the two different heaters. The user noted that maybe an action should be able to condition on multiple devices.
+
+Reflecting the feedback from the user, we are considering making the action declaration more comprehensive, specifying only the relevant property of the device and allowing the action to condition on multiple devices.
+
+Some tests that we can potentially write after the lexer and parser has been set up would be tests that reflect our language’s invariants/constraints, as specified above. Violations of the invariants should raise an error.
