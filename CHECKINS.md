@@ -192,11 +192,42 @@ Bedroom:
 Bathroom:
 - When we walk into the bathroom, the bathroom light should automatically turn on. When we exit the bathroom, the bathroom light should turn off.
 
-Some notes from the study:
-- The user noted that the language syntax is relatively straightforward and easy to think about, and translating the instructions for the automations to the DSL code seemed easy.
-- While writing the actions, the user said that it seemed weird that any state change of the device specified in the action declaration can trigger the action. They stated that maybe change of only the relevant property should trigger the action.
+### Some notes from the study:
+- The user noted that the language syntax is generally straightforward and easy to think about. However, certain parts of the grammar recieved comments:
+   - for someone with less programming experience, the idea that type declaration is only for the interface, and the instantiation happens inside of the room declarations may be difficult conceptually
+   - prefacing every declaration inside the room with "device" is unnecessary, as nothing else can be declared in that location anyways
+   - it was unclear if it was possible to override variables when working with the inheritance
+-  The user found that it was very tedious to declare all the rooms, especially when rooms would share a lot of the same devices (ie. door sensor and lights).
+- Translating the instructions for the automations to the DSL code was relatively easy.
+- While writing the actions, it was initally unclear how the actions would trigger. The user then said that it seemed weird that any state change of the device specified in the action declaration can trigger the action. They stated that maybe change of only the relevant property should trigger the action.
 - To implement the heater level sync, the user needed to declare two actions that are almost identical, just conditioned on the state change of the two different heaters. The user noted that maybe an action should be able to condition on multiple devices.
+- It could also be helpful to include functionality in the actions to allow the user to see how a value has changed. (ie. value increased, value decreased etc.)
 
-Reflecting the feedback from the user, we are considering making the action declaration more comprehensive, specifying only the relevant property of the device and allowing the action to condition on multiple devices.
+Reflecting the feedback from the user, we are looking at ways to create maybe a room "template", for cases where many rooms share the same set of devices. We are also considering making the action declaration more comprehensive, specifying only the relevant property of the device and allowing the action to condition on multiple devices. In the case of multiple devices, we would need a way for the user to know which device was the one being triggered. Certain parts of the grammar could also be simplified, making the declaration process less tedious, such as device instantiation. This would likely look something like the following.
+
+*Current implementation:*
+```
+room Bedroom {
+    device bedHeater of Heater(ON, 5)
+    Device bedLight of Light(OFF)
+    Device lamp1 of Light(OFF)
+    Device lamp2 of Light(OFF)
+    Device doorSensorBed of DoorSensor(OFF)
+    Device bedSwitch of Switch(OFF) 
+}
+```
+*After changes:*
+```
+room Bedroom {
+    bedHeater of Heater(ON, 5)
+    bedLight of Light(OFF)
+    lamp1 of Light(OFF)
+    lamp2 of Light(OFF)
+    doorSensorBed of DoorSensor(OFF)
+    bedSwitch of Switch(OFF) 
+}
+```
+
+These changes are all not that intrusive, and should not affect the current planned timeline.
 
 Some tests that we can potentially write after the lexer and parser has been set up would be tests that reflect our language’s invariants/constraints, as specified above. Violations of the invariants should raise an error.
