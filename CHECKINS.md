@@ -137,8 +137,8 @@ room <room_name> {
 action <action_name> on <device_name> {
     set <device__name>.<property_name> to <value>
 
-	if <device__name>.<property_name> is <state> {
-		…	
+    if <device__name>.<property_name> is <state> {
+        …	
     }
 
     for <variable_name> of <type> in <room_name> {
@@ -209,11 +209,11 @@ Reflecting the feedback from the user, we are looking at ways to create maybe a 
 ```
 room Bedroom {
     device bedHeater of Heater(ON, 5)
-    Device bedLight of Light(OFF)
-    Device lamp1 of Light(OFF)
-    Device lamp2 of Light(OFF)
-    Device doorSensorBed of DoorSensor(OFF)
-    Device bedSwitch of Switch(OFF) 
+    device bedLight of Light(OFF)
+    device lamp1 of Light(OFF)
+    device lamp2 of Light(OFF)
+    device doorSensorBed of DoorSensor(OFF)
+    device bedSwitch of Switch(OFF) 
 }
 ```
 *After changes:*
