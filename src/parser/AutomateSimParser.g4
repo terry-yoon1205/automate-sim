@@ -22,4 +22,4 @@ action: ACTION VAR ON (device_prop | LIST_START device_prop (',' device_prop)* L
         DECL_START statement* DECL_END;
 if: IF device_prop IS arg DECL_START statement* DECL_END;
 for: FOR VAR OF VAR IN VAR DECL_START statement* DECL_END;
-set: SET device_prop TO arg;
+set: SET device_prop TO (VAR (DOT VAR)? | NUM | STR);
