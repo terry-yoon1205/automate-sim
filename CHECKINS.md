@@ -6,7 +6,7 @@ IoT device management:
   1. Define types of devices, complete with a set of states a device of the defined type can have, as well as its initial state. Type hierarchy is possible.
   2. Build a mockup of the smart home. The user can define a room containing a set of devices which are of a certain type.
   3. Define actions that will be triggered upon the change of the specified device’s state. The action can contain if-conditions and loops.
-- Example (updated for Check-in 3):
+- Example (updated after first user study):
   ```
   type Light {
       enum power [ON, OFF]
@@ -28,20 +28,20 @@ IoT device management:
   
   
   room bedroom {
-      device bedroom_light of Light(OFF, "ffffff")
-      device bedroom_lamp of SmallLight(OFF, "ffebd9")
-      device bedroom_heater of Heater(OFF, 3)
-      device bedroom_switch of Switch(OFF)
+      bedroom_light of Light(OFF, "ffffff")
+      bedroom_lamp of SmallLight(OFF, "ffebd9")
+      bedroom_heater of Heater(OFF, 3)
+      bedroom_switch of Switch(OFF)
   }
   
   room living_room {
-      device main_light of Light(OFF, "ffffff")
-      device main_switch of Switch(OFF)
-      device main_heater of Heater(OFF, 3)
+      main_light of Light(OFF, "ffffff")
+      main_switch of Switch(OFF)
+      main_heater of Heater(OFF, 3)
   }
 
   
-  action bedroom_all on bedroom_switch {
+  action bedroom_all on bedroom_switch.state {
       if bedroom_switch.state is ON {
           set bedroom_light.power to ON
           set bedroom_lamp.power to DIMMED
@@ -49,7 +49,7 @@ IoT device management:
       }
   }
   
-  action lights_all on main_switch {
+  action lights_all on main_switch.power {
       if main_switch.power is OFF {
           set main_light.power to OFF
           for light of Light in bedroom {
@@ -58,7 +58,7 @@ IoT device management:
       }
   }
   
-  action sync_heaters on main_heater {
+  action sync_heaters on [main_heater.level, bedroom_heater.level] {
       set bedroom_heater.level to main_heater.level
   }
   ```

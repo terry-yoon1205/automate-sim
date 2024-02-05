@@ -1,30 +1,38 @@
 lexer grammar AutomateSimLexer;
 
-DECLARATION_TYPES: 'type' | 'device' | 'room' | 'action';
-ACTION_START:   'enable' | 'disable';
-ADD_REMOVE: 'add' | 'remove';
-INSIDE_TYPES: 'Enum' | 'String';
+TYPE: 'type';
+INHERITS: 'inherits';
+ENUM: 'enum';
+STRING: 'string';
+NUMBER: 'number';
 
-FUNC_START: '{';
-FUNC_END: '}';
+ROOM: 'room';
+OF: 'of';
 
-// TODO: DECLARATION unfinished
-DECLARATION: DECLARATION_TYPES TEXT 'on' TEXT FUNC_START -> mode(IN_FUNC_MODE);
+ACTION: 'action';
+ON: 'on';
 
-ADD_OR_REMOVE: ADD_REMOVE WS TEXT WS 'of'|'from' WS TEXT WS;
-ACTION: ACTIONSTART WS TEXT WS;
+SET: 'set';
+TO: 'to';
 
-WS :[ \t\r\n]* -> channel(HIDDEN);
+IF: 'if';
+IS: 'is';
+FOR: 'for';
+IN: 'in';
 
-// IDENTIFIER: [a-zA-Z] [a-zA-Z_0-9]*
-TEXT: ~[{}\r\n ];
+COMMA: ',';
+DOT: '.';
 
-mode IN_FUNC_MODE;
-CODE: ~[{}] -> mode(DEFAULT_MODE);
-IF_CLAUSE: 'if' TEXT 'is' IN_FUNC_START CODE IN_FUNC_END;
+DECL_START: '{';
+DECL_END: '}';
 
-IN_FUNC_START: '{';
-IN_FUNC_END: '}';
+LIST_START: '[';
+LIST_END: ']';
 
+ARG_START: '(';
+ARG_END: ')';
 
-// unsure about the whitespace whether to incluude \r\n or separate another NAME
+WS: [ \t\r\n] -> channel(HIDDEN);
+NUM: [0-9]+;
+STR: '"' ~[\r\n"]* '"';
+VAR: ~[()[\]{},.\r\n" ]+;
