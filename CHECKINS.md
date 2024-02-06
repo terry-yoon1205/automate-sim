@@ -194,7 +194,7 @@ Bathroom:
 
 ### Some notes from the study:
 - The user noted that the language syntax is generally straightforward and easy to think about. However, certain parts of the grammar recieved comments:
-   - for someone with less programming experience, the idea that type declaration is only for the interface, and the instantiation happens inside of the room declarations may be difficult conceptually
+   - for someone with less programming experience, the idea that type declaration is only for the interface, and the instantiation happens inside of the room decls may be difficult conceptually
    - prefacing every declaration inside the room with "device" is unnecessary, as nothing else can be declared in that location anyways
    - it was unclear if it was possible to override variables when working with the inheritance
 -  The user found that it was very tedious to declare all the rooms, especially when rooms would share a lot of the same devices (ie. door sensor and lights).
