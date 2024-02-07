@@ -2,10 +2,10 @@ package ast;
 
 import java.util.Objects;
 
-public class Name extends Node {
+public class Var extends Node {
     private final String text;
 
-    public Name(String text) {
+    public Var(String text) {
         this.text = text;
     }
 
@@ -26,9 +26,9 @@ public class Name extends Node {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || !(o instanceof Name name)) return false;
+        if (!(o instanceof Var var)) return false;
 
-        return Objects.equals(text, name.text);
+        return Objects.equals(text, var.text);
     }
 
     @Override

@@ -1,4 +1,4 @@
 package ast;
 
-public abstract class Decl extends Exp {
+public abstract class Decl extends Node {
 }

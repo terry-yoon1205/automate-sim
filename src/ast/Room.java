@@ -3,18 +3,20 @@ package ast;
 import java.util.List;
 
 public class Room extends Decl {
-    private final Name name;
+    private final Var var;
     private final List<Device> devices;
-    public Room(Name name, List<Device> devices) {
+
+    public Room(Var var, List<Device> devices) {
         this.devices = devices;
-        this.name = name;
+        this.var = var;
     }
 
     public List<Device> getDevices() {
         return devices;
     }
-    public Name getName() {
-        return name;
+
+    public Var getName() {
+        return var;
     }
 
     @Override
