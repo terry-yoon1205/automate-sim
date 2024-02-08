@@ -1,4 +1,5 @@
 // Generated from /Users/Admin/Desktop/courses/2023w2/cpsc410/project1/src/parser/AutomateSimParser.g4 by ANTLR 4.13.1
+package parser;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**

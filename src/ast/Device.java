@@ -1,14 +1,28 @@
 package ast;
 
-public class Device extends Node{
-    private final Name name;
+import java.util.List;
 
-    public Device(Name name) {
+public class Device extends Node {
+    private final Var name;
+    private final Type type;
+    private final List<PropVal> values;
+
+    public Device(Var name, Type type, List<PropVal> values) {
         this.name = name;
+        this.type = type;
+        this.values = values;
     }
 
-    public Name getName() {
+    public Var getName() {
         return name;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public List<PropVal> getValues() {
+        return values;
     }
 
     @Override

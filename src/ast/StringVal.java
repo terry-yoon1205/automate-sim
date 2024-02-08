@@ -1,13 +1,13 @@
 package ast;
 
-public class PropNumber extends Property {
-    private final int value;
+public class StringVal extends PropVal {
+    private final String value;
 
-    public PropNumber(int value) {
+    public StringVal(String value) {
         this.value = value;
     }
 
-    public int getValue() {
+    public String getValue() {
         return value;
     }
 
