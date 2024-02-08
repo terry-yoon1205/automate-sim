@@ -1,7 +1,5 @@
 package ast;
 
-import java.util.List;
-
 public class EnumVal extends PropVal {
     private final Var state;
 
