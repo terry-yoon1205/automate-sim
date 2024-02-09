@@ -62,6 +62,8 @@ IoT device management:
       set bedroom_heater.level to main_heater.level
   }
   ```
+  
+---
 
 ## Check-in 2 (Week 3)
 
@@ -106,6 +108,8 @@ Feb 16 - Check-in 5
 - All: Make the demo video.
 ### Feb 25 - Feb 26
 Feb 26 - Due date
+
+---
 
 ## Check-in 3 (Week 4)
 
@@ -231,3 +235,22 @@ room Bedroom {
 These changes are all not that intrusive, and should not affect the current planned timeline.
 
 Some tests that we can potentially write after the lexer and parser has been set up would be tests that reflect our language’s invariants/constraints, as specified above. Violations of the invariants should raise an error.
+
+---
+
+## Check-in 4 (Week 5)
+
+- Status of implementation.
+  - So far, we have completed the ANTLR lexer and parser rules and the initial implementation for our AST nodes. We have
+    now begun working on the parser and the evaluator implementations in parallel.
+  - The evaluator so far has a basic implementation utilizing the visitor pattern, where the final output just prints
+    all the declarations that has been made, and corresponding tests. We'll need to flesh out the details that produce
+    the actual output that we expect for our final product, and write tests for it.
+- Plans for final user study.
+  - Current plans are to repeat the first user study, with the addition of a working parser and evaluator that will
+    generate a console application.
+  - The user study will be able to tell us if the error checking and the final output makes sense to the user.
+- Planned timeline for the remaining days.
+  - Before the final user study, we will finish all unit tests and implementations, and then together write some end-to-end
+    tests that will see if the parser and evaluator work fine together and produce the expected output.
+  - After the user study, we will take the feedback and make final adjustments to our implementation, if any.
