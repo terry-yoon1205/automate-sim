@@ -1,7 +1,5 @@
 package ast;
 
-import java.util.List;
-
 public class EnumVal extends PropVal {
     private final Var state;
 
@@ -19,7 +17,7 @@ public class EnumVal extends PropVal {
     }
 
     @Override
-    public <C,T> T accept(C context, Visitor<C,T> v) {
+    public <C, T> T accept(C context, Visitor<C, T> v) {
         return v.visit(context, this);
     }
 }

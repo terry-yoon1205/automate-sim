@@ -21,6 +21,6 @@ public class EnumType extends PropType {
 
     @Override
     public <C, T> T accept(C context, Visitor<C, T> v) {
-        return null;
+        return v.visit(context, this);
     }
 }
