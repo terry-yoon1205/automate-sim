@@ -19,7 +19,7 @@ public class Var extends Node {
     }
 
     @Override
-    public <C,T> T accept(C context, Visitor<C,T> v) {
+    public <C, T> T accept(C context, Visitor<C, T> v) {
         return v.visit(context, this);
     }
 

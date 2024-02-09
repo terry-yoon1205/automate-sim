@@ -1,4 +1,4 @@
-// Generated from C:/Users/thebw/IdeaProjects/Group15Project1/src/parser/AutomateSimLexer.g4 by ANTLR 4.13.1
+// Generated from C:/Users/thebw/OneDrive/Documents/GitHub/Group15Project1/src/parser/AutomateSimLexer.g4 by ANTLR 4.13.1
 package parser;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;

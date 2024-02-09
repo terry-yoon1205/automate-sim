@@ -4,20 +4,14 @@ import ast.*;
 import evaluator.Evaluator;
 import org.junit.jupiter.api.Test;
 
-import java.awt.event.PaintEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EvaluatorTest {
-
     @Test
     void basicRoomDecl() {
-
-
-
         // setup electronicType supertype.
         Var electronicPower = new Var("ELECTRONIC_POWER");
         List<PropType> electronicProperties = List.of(new EnumType(electronicPower, List.of(new Var("ON"), new Var("OFF"))));
@@ -35,23 +29,19 @@ public class EvaluatorTest {
         Var lampVar = new Var("lamp");
         Device lamp = new Device(lampVar, lampType, lampPowerOn);
 
-
         // setup tvType and declare TV device
         List<PropVal> tvVal = List.of(new EnumVal(new Var("OFF")), new NumberVal(50), new StringVal("DISPLAY TEST!!!"));
 
         // Do not declare "POWER" enum because it inherits it from electronicType.
         List<PropType> tvProperties = List.of(new NumberType(new Var("VOLUME"), 0, 100),
-                                              new StringType(new Var("DISPLAY_TEXT")));
+                new StringType(new Var("DISPLAY_TEXT")));
 
         Type tvType = new Type(new Var("tvType"), electronicType, tvProperties);
         Var tvVar = new Var("tv");
         Device tv = new Device(tvVar, tvType, tvVal);
 
-
         // setup the room.
         Room bedroom = new Room(new Var("Bedroom"), List.of(lamp, tv));
-
-
 
         // ============================================================================================================= //
 
@@ -61,14 +51,10 @@ public class EvaluatorTest {
 
         // setup the if statement that will trigger the previous set statements for tv.
         IfStatement ifLampTurnsOffSetTvOn = new IfStatement(new DeviceProp(lampVar, lampPower),
-                                                            new EnumVal(new Var("OFF")), List.of(setTvOn));
-
+                new EnumVal(new Var("OFF")), List.of(setTvOn));
 
         // setup the Action.
         Action turnOnTv = new Action(new Var("Turn on TV"), List.of(new DeviceProp(lampVar, lampPower)), List.of(ifLampTurnsOffSetTvOn));
-
-
-
 
         // ============================================================================================================= //
 
@@ -80,24 +66,24 @@ public class EvaluatorTest {
         decls.add(bedroom);
         decls.add(turnOnTv);
 
-
-
         Program program = new Program(decls);
-
 
         Evaluator evaluator = new Evaluator();
         StringBuilder stringBuilder = new StringBuilder();
         evaluator.visit(stringBuilder, program);
 
+        String output = stringBuilder.toString();
 
-        System.out.println(stringBuilder);
+        System.out.println(output);
 
-
-
-
-
-
+        assertTrue(output.contains(electronicPower.getText()));
+        assertTrue(output.contains(electronicType.getName().getText()));
+        assertTrue(output.contains(lampOff.getText()));
+        assertTrue(output.contains(lampPower.getText()));
+        assertTrue(output.contains(lampVar.getText()));
+        assertTrue(output.contains(tvType.getName().getText()));
+        assertTrue(output.contains(tv.getName().getText()));
+        assertTrue(output.contains(bedroom.getName().getText()));
+        assertTrue(output.contains(turnOnTv.getName().getText()));
     }
-
-
 }
