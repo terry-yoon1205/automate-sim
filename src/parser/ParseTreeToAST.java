@@ -177,7 +177,7 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
         for (AutomateSimParser.DeviceContext r : ctx.device()) {
             devices.add((Device) r.accept(this));
         }
-//        return new Room((Var) ctx.VAR().accept(this), devices);
+        return new Room((Var) ctx.VAR().accept(this), devices);
         return null;
     }
 
