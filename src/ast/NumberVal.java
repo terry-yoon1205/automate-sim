@@ -3,8 +3,9 @@ package ast;
 public class NumberVal extends PropVal {
     private final int value;
 
-    public NumberVal(int value) {
+    public NumberVal(int value, PropType type) {
         this.value = value;
+        this.type = type;
     }
 
     public int getValue() {

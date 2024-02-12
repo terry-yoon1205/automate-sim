@@ -3,8 +3,9 @@ package ast;
 public class StringVal extends PropVal {
     private final String value;
 
-    public StringVal(String value) {
+    public StringVal(String value, PropType type) {
         this.value = value;
+        this.type = type;
     }
 
     public String getValue() {

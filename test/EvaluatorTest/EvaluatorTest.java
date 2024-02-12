@@ -14,11 +14,12 @@ public class EvaluatorTest {
     void basicRoomDecl() {
         // setup electronicType supertype.
         Var electronicPower = new Var("ELECTRONIC_POWER");
-        List<PropType> electronicProperties = List.of(new EnumType(electronicPower, List.of(new Var("ON"), new Var("OFF"))));
+        PropType electronicPropType = new EnumType(electronicPower, List.of(new Var("ON"), new Var("OFF")));
+        List<PropType> electronicProperties = List.of(electronicPropType);
         Type electronicType = new Type(new Var("electronicType"), null, electronicProperties);
 
         // setup lampType and declare a lamp device
-        List<PropVal> lampPowerOn = List.of(new EnumVal(new Var("ON")));
+        List<PropVal> lampPowerOn = List.of(new EnumVal(new Var("ON"), electronicPropType));
 
         Var lampOff = new Var("OFF");
 
