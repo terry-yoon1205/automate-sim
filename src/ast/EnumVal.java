@@ -3,8 +3,9 @@ package ast;
 public class EnumVal extends PropVal {
     private final Var state;
 
-    public EnumVal(Var state) {
+    public EnumVal(Var state, PropType type) {
         this.state = state;
+        this.type = type;
     }
 
     public Var getState() {
