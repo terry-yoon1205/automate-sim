@@ -1,20 +1,26 @@
 package ast;
 
 public class NumberVal extends PropVal {
-    private final int value;
+    private final String value;
 
-    public NumberVal(int value, PropType type) {
+    public NumberVal(String name, String value, PropType type) {
+        this.name = name;
         this.value = value;
         this.type = type;
     }
 
-    public int getValue() {
+    public String getValue() {
         return value;
     }
 
     @Override
     public String toString() {
         return String.valueOf(getValue());
+    }
+
+    @Override
+    public NumberType getType() {
+        return (NumberType) type;
     }
 
     @Override

@@ -1,12 +1,15 @@
 package model;
 
 public class NumberProp extends Property {
-    private int min;
-    private int max;
+    private final int min;
+    private final int max;
 
-    public NumberProp(String name, String value) {
+    public NumberProp(String name, String value, int min, int max) {
         super(name, value);
+        this.min = min;
+        this.max = max;
     }
+
 
     @Override
     protected boolean isValid(String value) {

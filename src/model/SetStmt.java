@@ -2,18 +2,21 @@ package model;
 
 public class SetStmt extends Stmt { // leaf of the composite pattern
     private final String val;
-    private final Property src;
+    private final String srcName;
+    private final String srcVal;
 
     public SetStmt(String device, String prop, String val) {
         super(device, prop);
         this.val = val;
-        this.src = null;
+        this.srcName = null;
+        this.srcVal = null;
     }
 
-    public SetStmt(String device, String prop, Property src) {
+    public SetStmt(String device, String prop, String srcName, String srcVal) {
         super(device, prop);
         this.val = null;
-        this.src = src;
+        this.srcName = srcName;
+        this.srcVal = srcVal;
     }
 
     @Override
