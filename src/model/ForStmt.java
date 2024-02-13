@@ -8,6 +8,10 @@ public class ForStmt extends Stmt { // composite of the composite pattern
         this.room = room;
     }
 
+    public String getRoom() {
+        return room;
+    }
+
     @Override
     public void execute() {
         // TODO

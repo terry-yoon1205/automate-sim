@@ -17,6 +17,20 @@ public class SetStmt extends Stmt { // leaf of the composite pattern
         this.val = null;
         this.srcName = srcName;
         this.srcVal = srcVal;
+
+    }
+
+    public String getVal() {
+        return val;
+    }
+
+    public String getSrcName() {
+        return srcName;
+    }
+
+    public String getSrcVal() {
+        return srcVal;
+
     }
 
     @Override

@@ -3,6 +3,11 @@ package EvaluatorTest;
 import ast.*;
 import evaluator.Evaluator;
 import model.Context;
+
+import model.IfStmt;
+import model.SetStmt;
+import model.Stmt;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -29,14 +34,11 @@ public class EvaluatorTest {
         // =============================================================================================================
 
 
-
         Var windowStatus = new Var("WINDOW_STATUS");
 
         EnumType windowPropType = new EnumType(windowStatus, List.of(new Var("OPEN"), new Var("CLOSED")));
 
         Type windowType = new Type(new Var("windowType"), null, List.of(windowPropType));
-
-
 
         List<PropVal> windowInitialState = List.of(new EnumVal(windowStatus.getText(), new Var("OPEN"), windowPropType));
 
@@ -69,14 +71,13 @@ public class EvaluatorTest {
         // =============================================================================================================
         Room bedroom = new Room(new Var("Bedroom"), List.of(window, tv));
 
-
-
         // =============================================================================================================
         // setup some statements for the tv.
         // =============================================================================================================
         SetStatement setTvOn = new SetStatement(new DeviceProp(tvVar, electronicPower),
                                                 new EnumVal(electronicPower.getText(),
                                                         new Var("ON"), electronicPropType));
+
 
         SetStatement increaseTvVolume = new SetStatement(new DeviceProp(tvVar, volVar),
                                                          new NumberVal(volVar.getText(), "90", vol));
@@ -91,6 +92,7 @@ public class EvaluatorTest {
         // =============================================================================================================
         // setup the Action.
         // =============================================================================================================
+
         Action turnUpTvIfWindowCloses = new Action(new Var("Turn up TV if window closes"),
                                         List.of(new DeviceProp(windowVar, windowStatus)),
                                         List.of(ifWindowClosesSetTvOn));
@@ -156,6 +158,30 @@ public class EvaluatorTest {
         assertSame("DISPLAY TEST!!!", tvTest.getProp(disVar.getText()).getValue());
         assertSame("OFF", tvTest.getProp(electronicPower.getText()).getValue());
 
+
+
+        // action tests
+
+        assertEquals(1, actions.size());
+
+        model.Action actionTest = actions.get(turnUpTvAction.getText());
+
+        assertNotNull(actionTest);
+
+        assertEquals(3, actionTest.getStmts().size());
+
+        SetStmt tvElecPower = (SetStmt) actionTest.getStmts().get(0);
+        SetStmt tvVol       = (SetStmt) actionTest.getStmts().get(1);
+        IfStmt windowClose  = (IfStmt) actionTest.getStmts().get(2);
+
+        assertNotNull(tvElecPower);
+        assertEquals(electronicPower.getText(), tvElecPower.getVal());
+
+        assertNotNull(tvVol);
+        assertEquals(volVar.getText(), tvVol.getVal());
+
+        assertNotNull(windowClose);
+        assertEquals("CLOSED", windowClose.getVal());
 
 
 //        assertTrue(output.contains(electronicType.getName().getText()));
