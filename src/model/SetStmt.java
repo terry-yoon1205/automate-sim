@@ -17,7 +17,6 @@ public class SetStmt extends Stmt { // leaf of the composite pattern
         this.val = null;
         this.srcName = srcName;
         this.srcVal = srcVal;
-
     }
 
     public String getVal() {
@@ -30,7 +29,6 @@ public class SetStmt extends Stmt { // leaf of the composite pattern
 
     public String getSrcVal() {
         return srcVal;
-
     }
 
     @Override
