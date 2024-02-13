@@ -8,6 +8,7 @@ import model.*;
 import java.util.*;
 
 public class Evaluator implements Visitor<StringBuilder, Object> {
+    List<Stmt> tempStmt = new ArrayList<>();
 
     @Override
     public Object visit(StringBuilder context, Program p) {
@@ -19,7 +20,6 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
 
     @Override
     public Object visit(StringBuilder context, Action p) {
-
         model.Action action = new model.Action();
 
         context.append("\nAction: ");
@@ -30,6 +30,10 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
         }
         for (Statement s : p.getStatements()) {
             s.accept(context, this);
+        }
+
+        for(Stmt st : tempStmt){
+            action.add(st);
         }
         return null;
     }
@@ -168,8 +172,6 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
 
     @Override
     public Object visit(StringBuilder context, Device p) {
-        System.out.println("DEVICE");
-
         model.Device d = new model.Device(p.getName().getText());
 
         for (PropVal pv  : p.getValues()) {
@@ -211,20 +213,21 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
 
     @Override
     public Object visit(StringBuilder context, SetStatement p) {
-
+        SetStmt setStmt;
         if(p.getStaticVal() != null){
-            SetStmt setStmt = new SetStmt(
+            setStmt = new SetStmt(
                     p.getDeviceProp().getDevice().getText(),
                     p.getDeviceProp().getProp().getText(),
                     p.getStaticVal().getVarName());
         }else{
-            SetStmt setStmt = new SetStmt(
+            setStmt = new SetStmt(
                     p.getDeviceProp().getDevice().getText(),
                     p.getDeviceProp().getProp().getText(),
                     p.getDynamicVal().getDevice().getText(),
                     p.getDynamicVal().getProp().getText());
         }
 
+        tempStmt.add(setStmt);
 
         context.append("\nSET: ");
         context.append(p.getDeviceProp().getProp().getText() + " = " + p.getStaticVal());
@@ -233,8 +236,6 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
 
     @Override
     public Object visit(StringBuilder context, IfStatement p) {
-
-
         IfStmt ifStmt = new IfStmt(
                 p.getDeviceProp().getDevice().getText(),
                 p.getDeviceProp().getProp().getText(),
@@ -246,12 +247,14 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
         for (Statement s : p.getStatements()) {
             s.accept(context, this);
         }
+
+        tempStmt.add(ifStmt);
+
         return null;
     }
 
     @Override
     public Object visit(StringBuilder context, ForStatement p) {
-
         ForStmt forStmt = new ForStmt(
                 p.getType().getName().getText(),
                 p.getRoom().getName().getText());
@@ -261,6 +264,9 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
         for (Statement s : p.getStatements()) {
             s.accept(context, this);
         }
+
+        tempStmt.add(forStmt);
+
         context.append("}");
         return null;
     }
