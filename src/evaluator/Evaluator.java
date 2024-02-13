@@ -21,7 +21,7 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
     @Override
     public Object visit(StringBuilder context, Action p) {
         model.Action action = new model.Action();
-
+        tempStmt.clear();
         context.append("\nAction: ");
         context.append(p.getName());
 
