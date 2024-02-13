@@ -12,4 +12,8 @@ public class IfStmt extends Stmt { // composite of the composite pattern
     public void execute() {
         // TODO
     }
+
+    public String getVal() {
+        return val;
+    }
 }

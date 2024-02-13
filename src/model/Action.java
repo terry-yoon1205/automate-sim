@@ -16,6 +16,10 @@ public class Action extends Observer {
         stmts.add(s);
     }
 
+    public List<Stmt> getStmts() {
+        return stmts;
+    }
+
     @Override
     public void update() {
         for (Stmt s : stmts) {

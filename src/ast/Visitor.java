@@ -27,6 +27,7 @@ public interface Visitor<C, T> {
     T visit(C context, EnumType p);
 
     T visit(C context, DeviceProp p);
+    T visit(C context, Device p);
 
     T visit(C context, SetStatement p);
 

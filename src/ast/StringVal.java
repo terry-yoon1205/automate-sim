@@ -3,7 +3,8 @@ package ast;
 public class StringVal extends PropVal {
     private final String value;
 
-    public StringVal(String value, PropType type) {
+    public StringVal(String name, String value, PropType type) {
+        this.name = name;
         this.value = value;
         this.type = type;
     }
@@ -15,6 +16,11 @@ public class StringVal extends PropVal {
     @Override
     public String toString() {
         return String.valueOf(getValue());
+    }
+
+    @Override
+    public StringType getType() {
+        return (StringType) type;
     }
 
     @Override
