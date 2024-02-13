@@ -35,6 +35,11 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
         for(Stmt st : tempStmt){
             action.add(st);
         }
+
+        // TODO
+        Context.addAction(p.getName().getText(), action);
+
+
         return null;
     }
 
@@ -141,7 +146,7 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
     public Object visit(StringBuilder context, NumberType p) {
 
         context.append("\nNum: ");
-        context.append("[" + p.getMin() + "," + p.getMax() + "]");
+        context.append("[" + p.getMin() + "," + p.getMax() + "]\n");
         return null;
     }
 
@@ -157,7 +162,7 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
         for (Var v : p.getStates()) {
             context.append(v.getText() + ",");
         }
-        context.append("}");
+        context.append("}\n");
         return null;
     }
 
@@ -205,8 +210,10 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
             d.addProp(prop);
         }
 
+
         Context.addDevice(d);
 
+        context.append("\n");
         context.append(p.getName().getText());
         return null;
     }

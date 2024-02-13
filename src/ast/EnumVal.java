@@ -3,6 +3,7 @@ package ast;
 public class EnumVal extends PropVal {
     private final Var state;
 
+    // name should always be the property name!
     public EnumVal(String name, Var state, PropType type) {
         this.name = name;
         this.state = state;
