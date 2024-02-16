@@ -164,7 +164,7 @@ public class EvaluatorTest {
 
         assertEquals(1, actions.size());
 
-        model.Action actionTest = actions.get(turnUpTvAction.getText());
+        model.Action actionTest = actions.get(turnUpTvIfWindowCloses.getName().getText());
 
         assertNotNull(actionTest);
 
