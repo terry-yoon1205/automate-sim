@@ -12,14 +12,11 @@ public abstract class Property extends Subject {
     }
 
     public boolean mutate(String value) {
-        if (!isValid(value)) {
-            // TODO: append to errors?
+        if (!isValid(value))
             return false;
-        }
 
         this.value = value;
         notifyObservers();
-
         return true;
     }
 

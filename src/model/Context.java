@@ -10,15 +10,17 @@ public class Context {
 
     private static final StringBuffer errors = new StringBuffer(); // dynamic errors
 
-    public static HashMap<String, Set<String>> getRooms (){
+    public static HashMap<String, Set<String>> getRooms() {
         return rooms;
     }
 
-    public static HashMap<String, Device> getDevices (){
+    public static HashMap<String, Device> getDevices() {
         return devices;
     }
 
-    public static HashMap<String, Action> getActions () {return actions; }
+    public static HashMap<String, Action> getActions() {
+        return actions;
+    }
 
     public static void addRoom(String name, Set<String> deviceNames) {
         rooms.put(name, deviceNames);

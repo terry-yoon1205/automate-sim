@@ -10,7 +10,6 @@ public class NumberProp extends Property {
         this.max = max;
     }
 
-
     @Override
     protected boolean isValid(String value) {
         try {

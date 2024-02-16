@@ -248,6 +248,7 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
                 p.getDeviceProp().getProp().getText(),
                 p.getValue().getValue()
         );
+        // TODO: add child stmts to "children".
 
         context.append("\nIF: ");
         context.append(p.getValue());
@@ -262,9 +263,8 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
 
     @Override
     public Object visit(StringBuilder context, ForStatement p) {
-        ForStmt forStmt = new ForStmt(
-                p.getType().getName().getText(),
-                p.getRoom().getName().getText());
+        ForStmt forStmt = new ForStmt();
+        // TODO: add devices of specified type in room to "devices" and add child stmts to "children".
 
         context.append("\nFOR: ");
         context.append("{");
