@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 // final output of evaluation. the program can be run by calling run()
 public class AutomateSim {
-    private Scanner input;
+    private Scanner input = new Scanner(System.in);
 
     public void run() {
         System.out.println("What property would you like to change? (<device name>.<property name>)");
