@@ -254,3 +254,27 @@ Some tests that we can potentially write after the lexer and parser has been set
   - Before the final user study, we will finish all unit tests and implementations, and then together write some end-to-end
     tests that will see if the parser and evaluator work fine together and produce the expected output.
   - After the user study, we will take the feedback and make final adjustments to our implementation, if any.
+
+---
+## Check-in 5 (Week 6)
+
+### User Study:
+For our user study, we repeated the study from Check-in 3 on a new user. They were asked to write the code to construct the rooms based on the same information and picture provided in the previous study. Because our implementation was not fully complete at this point, the user's code was manually converted into our AST the same way we declared them in our unit tests (see EvaluatorTest.Java). The user then tried out all of the UI functions that are implemented at this point.
+
+#### User Feedback:
+1. When the program starts, display all the devices that were added, as they found it difficult to remember the names of the devices they added.
+2. When a device is selected, give some information on the current state and status of that device
+   - eg. when device `TV` is selected, display that it its `electronic_power` state is currently set to `ON`
+   - Maybe display it in a tree/file system format?
+3. There could be more user feedback when something is done successfully
+   - eg. Explicitly show that `electronic_power` was set to `OFF` 
+
+The big takeaway from this second user study is increasing the amount of information shown to the user. The user couldn't remember device/device names off the top of their head, and had to constantly refer back to the code they wrote and the diagrams. We will look at adding more information.
+
+### Video:
+We are still mainly focusing on finishing the implementation, so the video hasn't been the main focus, but we have some ideas for the format of the presentation. We will meet during the break regarding this topic.
+
+### Timeline:
+The main features of the evaluator are mostly implemented, so we are focusing more on streamlining the UI and related functionality. Once the parser is complete, we will meet as a group during the break to integrate the two parts, and wrap up anything else that needs to be worked on.
+
+---
