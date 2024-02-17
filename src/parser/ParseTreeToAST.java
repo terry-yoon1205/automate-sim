@@ -1,14 +1,14 @@
 package parser;
 
 import ast.*;
-import org.antlr.v4.runtime.tree.ErrorNode;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
+    Set<Room> addedRoom = new HashSet<>();
+    Set<Device> addedDevice = new HashSet<>();
+    Set<Type> addedType = new HashSet<>();
+
     public Action visitAction(AutomateSimParser.ActionContext ctx) {
         if (ctx.device_prop().isEmpty()) {
             System.out.println("Please provide what device would trigger the action.");
@@ -38,19 +38,30 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
     public Device visitDevice(AutomateSimParser.DeviceContext ctx) {
         if (ctx.arg() != null) {
             Var name = new Var(ctx.VAR(0).getText());
-            //TODO: fix check type is existed
-//            Type type = visitType(ctx.VAR(1).getText());
-            List<PropVal> values = new ArrayList<>();
+            Type type = visitType(new Var(ctx.VAR(1).getText()));
+            if (type == null) {
+                System.out.println("The type of device does not exist");
+                return null;
+            }
 
+            List<PropVal> values = new ArrayList<>();
             for (int i = 0; i < ctx.arg().size(); i++) {
                 values.add((PropVal) visitArg(ctx.arg(i)));
             }
-//            return new Device(name, type, values);
+            Device createdDevice = new Device(name, type, values);
+            addedDevice.add(createdDevice);
+            return new Device(name, type, values);
         } else {
             System.out.println("Please provide default device value");
         }
-
         return null;
+    }
+
+    public Device visitDevice(Var var) {
+        return addedDevice.stream()
+                .filter(obj -> obj.getName().equals(var))
+                .findFirst()
+                .orElse(null);
     }
 
     public DeviceProp visitDevice_prop(AutomateSimParser.Device_propContext ctx) {
@@ -82,20 +93,22 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
 
     public ForStatement visitFor(AutomateSimParser.ForContext ctx) {
 //        if (ctx.statement() != null) {
-            Var name = new Var(ctx.VAR(0).getText());
-            // TODO: fix check type and room are exist
-//        Type type = visitType(ctx.VAR(1).getText());
-//        Room room = visitRoom(ctx.VAR(2).getText());
-            List<Statement> statements = new ArrayList<>();
-            for (AutomateSimParser.StatementContext statement : ctx.statement()) {
-                statements.add((Statement) visitStatement(statement));
-            }
-//        return new ForStatement(name, type, room, statements);
+        Var name = new Var(ctx.VAR(0).getText());
+        Type type = visitType(new Var(ctx.VAR(1).getText()));
+        Room room = visitRoom(new Var(ctx.VAR(2).getText()));
+        if (type == null || room == null) {
+            System.out.println("The type or the room provided do not exists");
+            return null;
+        }
+        List<Statement> statements = new ArrayList<>();
+        for (AutomateSimParser.StatementContext statement : ctx.statement()) {
+            statements.add((Statement) visitStatement(statement));
+        }
+        return new ForStatement(name, type, room, statements);
 //        } else {
 //
 //        }
-
-        return null;
+//        return null;
     }
 
     public IfStatement visitIf(AutomateSimParser.IfContext ctx) {
@@ -129,6 +142,21 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+
+    public Room visitRoom(Var var) {
+        return addedRoom.stream()
+                .filter(obj -> obj.getName().equals(var))
+                .findFirst()
+                .orElse(null);
+
+    }
+
+    public Type visitType(Var var) {
+        return addedType.stream()
+                .filter(obj -> obj.getName().equals(var))
+                .findFirst()
+                .orElse(null);
     }
 }
 
