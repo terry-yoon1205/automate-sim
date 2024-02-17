@@ -3,6 +3,7 @@ package parser;
 import ast.*;
 
 import java.util.List;
+
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
@@ -32,13 +33,14 @@ public class ParserTest {
 
     @Test
     void ComplexActionTest() {
-        String legalInput = "action bedroom_all on bedroom_switch.state {\n" +
-                "    if bedroom_switch.state is ON {\n" +
-                "        set bedroom_light.power to ON\n" +
-                "        set bedroom_lamp.power to DIMMED\n" +
-                "        set bedroom_heater.power to ON\n" +
-                "    }\n" +
-                "}";
+        String legalInput = """
+                action bedroom_all on bedroom_switch.state {
+                    if bedroom_switch.state is ON {
+                        set bedroom_light.power to ON
+                        set bedroom_lamp.power to DIMMED
+                        set bedroom_heater.power to ON
+                    }
+                }""";
         AutomateSimParser parser = constructParser(legalInput);
         AutomateSimParser.ActionContext a = parser.action();
         Node testAction = a.accept(visitor);
@@ -50,6 +52,10 @@ public class ParserTest {
 
     @Test
     void DeviceTest() {
+        EnumType mockEnum = new EnumType(new Var("State"), List.of(new Var("ON"), new Var("OFF")));
+        StringType mockStringType = new StringType(new Var("color"));
+        Type mockType = new Type(new Var("Light"), null, List.of(mockEnum, mockStringType));
+        visitor.addedType.add(mockType);
         String legalInput = "main_light of Light(OFF, \"ffffff\")";
         AutomateSimParser parser = constructParser(legalInput);
         AutomateSimParser.DeviceContext d = parser.device();
@@ -81,11 +87,12 @@ public class ParserTest {
 
     @Test
     void IfStatementTest() {
-        String legalInput = "if bedroom_switch.state is ON {\n" +
-                    "        set bedroom_light.power to ON\n" +
-                    "        set bedroom_lamp.power to DIMMED\n" +
-                    "        set bedroom_heater.power to ON\n" +
-                    "    }";
+        String legalInput = """
+                if bedroom_switch.state is ON {
+                        set bedroom_light.power to ON
+                        set bedroom_lamp.power to DIMMED
+                        set bedroom_heater.power to ON
+                    }""";
 
         AutomateSimParser parser = constructParser(legalInput);
         AutomateSimParser.IfContext e = parser.if_();
@@ -121,9 +128,6 @@ public class ParserTest {
     void numberTypeLegalTest() {
         String legalInput = "number level [0, 100]";
         AutomateSimParser parser = constructParser(legalInput);
-
-
-        String noMin = "number level [, 10]";
         AutomateSimParser.NumberContext n = parser.number();
         Node testNumberType = n.accept(visitor);
         assertEquals(new Var("level"), ((NumberType)testNumberType).getName());
