@@ -160,8 +160,29 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
     }
 
     @Override
+    public PropType visitProperty(AutomateSimParser.PropertyContext ctx) {
+        return (PropType) visitChildren(ctx);
+    }
+
+    @Override
+    public PropVal visitArg(AutomateSimParser.ArgContext ctx) {
+        //TODO
+//        if (ctx.VAR() != null) {
+//            return new EnumVal()
+//        } else if (ctx.NUM() != null) {
+//
+//        } else if (ctx.STR() != null) {
+//
+//        } else {
+//            throw new RuntimeException("Unknown invalid input");
+//        }
+        return null;
+    }
+
+    @Override
     public Program visitProgram(AutomateSimParser.ProgramContext ctx) {
         List<Decl> decls = new ArrayList<>();
+
         for (AutomateSimParser.DeclContext d : ctx.decl()) {
             decls.add((Decl) d.accept(this));
         }
@@ -172,55 +193,134 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
     @Override
     public Room visitRoom(AutomateSimParser.RoomContext ctx) {
         List<Device> devices = new ArrayList<>();
+        Var roomName = new Var(ctx.VAR().getText());
+
+        if (visitRoom(roomName) != null) {
+            throw new RuntimeException("Room " + roomName.getText() + " is already defined");
+        }
 
         for (AutomateSimParser.DeviceContext r : ctx.device()) {
             devices.add((Device) r.accept(this));
         }
-        return new Room((Var) ctx.VAR().accept(this), devices);
+        Room createdRoom = new Room(roomName, devices);
+        addedRoom.add(createdRoom);
+
+        return createdRoom;
     }
 
-    @Override
-    public SetStatement visitSet(AutomateSimParser.SetContext ctx) {
-//        DeviceProp dp = (DeviceProp) ctx.device_prop().accept(this);
-//        if (ctx.VAR(0) != null) {
-//            Var device = (Var) ctx.VAR(0).accept(this);
-//            // TODO: CHECK
-//
-//            if (ctx.VAR(1) != null) {
-//                Var prop = (Var) ctx.VAR(1).accept(this);
-//                // TODO: CHECK
-//                DeviceProp dp2 = new DeviceProp(
-//                        device,
-//                        prop);
-//
-//                return new SetStatement(dp, dp2);
-//            } else {
-//                EnumVal ev = new EnumVal((Var) ctx.VAR(0).accept(this), ));
-//                return new SetStatement(dp, ev);
-//            }
-//
-//
-//        } else if (ctx.NUM() != null) {
-//            return new SetStatement(
-//                    dp,
-//                    (NumberVal) ctx.NUM());
-//        }
+    private PropVal containsProperty(List<PropVal> deviceProperties, Var prop) {
+        for (PropVal pv: deviceProperties) {
+            if (pv.getVarName().equals(prop.getText())) {
+                return pv;
+            }
+        }
         return null;
     }
 
     @Override
-    public Type visitType(AutomateSimParser.TypeContext ctx) {
-        List<PropType> properties = new ArrayList<>();
+    public SetStatement visitSet(AutomateSimParser.SetContext ctx) {
+        DeviceProp dp = (DeviceProp) ctx.device_prop().accept(this);
+        // Check if device exists
+        Device device = visitDevice(dp.getDevice());
+        if (device == null) {
+            throw new RuntimeException("Device " + dp.getDevice().getText() + " does not exist");
+        }
 
+        List<PropVal> dValues = device.getValues();
+        // Check if the property of the device exists
+        PropVal deviceProperty = containsProperty(dValues, dp.getProp());
+        if (deviceProperty == null) {
+            throw new RuntimeException("Device " + device.getName().getText() + " has no property " + dp.getProp().getText());
+        }
+
+        // set to device prop
+        if (ctx.VAR(0) != null && ctx.VAR(1) != null) {
+            Var deviceName = new Var(ctx.VAR(0).getText());
+            Var prop = new Var(ctx.VAR(1).getText());
+
+            Device device2 = visitDevice(deviceName);
+            // Check if second device exists
+            if (device2 == null) {
+                throw new RuntimeException("Device " + dp.getDevice().getText() + " does not exist");
+            }
+
+            List<PropVal> d2Values = device2.getValues();
+            // Check if second device has the property
+            PropVal device2Property = containsProperty(d2Values, prop);
+            if (device2Property == null) {
+                throw new RuntimeException("Device " + device2.getName().getText() + " has no property " + prop.getText());
+            }
+
+            // check if both are same type
+            if (!device2Property.getType().equals(deviceProperty.getType())) {
+                throw new RuntimeException("Unexpected type for " + deviceProperty.getVarName());
+            }
+
+            DeviceProp dp2 = new DeviceProp(deviceName, prop);
+            return new SetStatement(dp, dp2);
+        // set to enum
+        } else if (ctx.VAR(0) != null) {
+            Var enumValue = new Var(ctx.VAR(0).getText());
+
+            // Check if it is enum type
+            if (!(deviceProperty.getType() instanceof EnumType)) {
+                throw new RuntimeException(deviceProperty.getVarName() + " is not an enum");
+            }
+
+            EnumType dEnum = (EnumType) deviceProperty.getType();
+            if (!dEnum.getStates().contains(enumValue)) {
+                throw new RuntimeException(enumValue.getText() + " is an invalid stated for " + deviceProperty.getVarName());
+            }
+
+            EnumVal ev = new EnumVal(deviceProperty.getVarName(), enumValue, deviceProperty.getType());
+
+            return new SetStatement(dp, ev);
+        // set to string
+        } else if (ctx.STR() != null) {
+            StringVal string = new StringVal(dp.getProp().getText(), ctx.STR().getText(), deviceProperty.getType());
+
+            return new SetStatement(dp, string);
+        // set to number
+        } else if (ctx.NUM() != null) {
+            NumberVal num = new NumberVal(dp.getProp().getText(), ctx.NUM().getText(), deviceProperty.getType());
+            return new SetStatement(dp, num);
+        } else {
+            throw new RuntimeException("Unknown invalid input");
+        }
+    }
+
+    @Override
+    public Type visitType(AutomateSimParser.TypeContext ctx) {
+        Var typeName = new Var(ctx.VAR(0).getText());
+        // Check if type is already defined
+        if (visitType(typeName) != null) {
+            throw new RuntimeException("Type " + typeName.getText() + " is already defined");
+        }
+
+        Var superTypeName = new Var(ctx.VAR(1).getText());
+        // Check if the supertype exists
+        Type superType = visitType(superTypeName);
+        if (superType == null) {
+            throw new RuntimeException("Type " + typeName.getText() + " is not defined");
+        }
+
+        // Get properties
+        List<PropType> properties = new ArrayList<>();
         for (AutomateSimParser.PropertyContext p : ctx.property()) {
             properties.add((PropType) p.accept(this));
         }
-        Type type = null;
-        // TODO: need to contruct inheritance tree
 
-        return new Type((Var) ctx.VAR(0).accept(this),
-                type,
-                properties);
+        Type createdType = new Type(typeName, superType, properties);
+        addedType.add(createdType);
+
+        return createdType;
+    }
+
+
+    @Override
+    public StringType visitString(AutomateSimParser.StringContext ctx) {
+        StringType st = new StringType(new Var(ctx.VAR().getText()));
+        return st;
     }
 }
 
