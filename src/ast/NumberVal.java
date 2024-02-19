@@ -1,5 +1,7 @@
 package ast;
 
+import java.util.Objects;
+
 public class NumberVal extends PropVal {
     private final String value;
 
@@ -21,6 +23,18 @@ public class NumberVal extends PropVal {
     @Override
     public NumberType getType() {
         return (NumberType) type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof NumberVal numberVal)) return false;
+        return Objects.equals(value, numberVal.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value);
     }
 
     @Override

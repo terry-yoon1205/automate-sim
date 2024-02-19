@@ -1,5 +1,7 @@
 package ast;
 
+import java.util.Objects;
+
 public class EnumVal extends PropVal {
     private final Var state;
 
@@ -22,6 +24,18 @@ public class EnumVal extends PropVal {
     @Override
     public EnumType getType() {
         return (EnumType) type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EnumVal enumVal)) return false;
+        return Objects.equals(state, enumVal.state);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(state);
     }
 
     @Override

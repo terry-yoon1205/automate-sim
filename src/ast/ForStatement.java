@@ -1,6 +1,7 @@
 package ast;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ForStatement extends Statement {
     private final Var name;
@@ -29,6 +30,18 @@ public class ForStatement extends Statement {
 
     public List<Statement> getStatements() {
         return statements;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ForStatement that)) return false;
+        return Objects.equals(name, that.name) && Objects.equals(type, that.type) && Objects.equals(room, that.room) && Objects.equals(statements, that.statements);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, type, room, statements);
     }
 
     @Override

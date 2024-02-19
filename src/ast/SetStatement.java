@@ -1,5 +1,7 @@
 package ast;
 
+import java.util.Objects;
+
 public class SetStatement extends Statement {
     private final DeviceProp deviceProp;
 
@@ -29,6 +31,18 @@ public class SetStatement extends Statement {
 
     public DeviceProp getDynamicVal() {
         return dynamicVal;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SetStatement that)) return false;
+        return Objects.equals(deviceProp, that.deviceProp) && Objects.equals(staticVal, that.staticVal) && Objects.equals(dynamicVal, that.dynamicVal);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(deviceProp, staticVal, dynamicVal);
     }
 
     @Override

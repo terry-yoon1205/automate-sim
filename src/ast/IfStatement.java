@@ -1,6 +1,7 @@
 package ast;
 
 import java.util.List;
+import java.util.Objects;
 
 public class IfStatement extends Statement {
     private final DeviceProp deviceProp;
@@ -23,6 +24,18 @@ public class IfStatement extends Statement {
 
     public List<Statement> getStatements() {
         return statements;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IfStatement that)) return false;
+        return Objects.equals(deviceProp, that.deviceProp) && Objects.equals(value, that.value) && Objects.equals(statements, that.statements);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(deviceProp, value, statements);
     }
 
     @Override
