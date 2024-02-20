@@ -149,6 +149,174 @@ public class ParserTest {
 
     }
 
+    @Test
+    void stringTypeLegalTest() {
+        String legalTestStrings = "string varname";
+
+        AutomateSimParser parser = constructParser(legalTestStrings);
+
+        AutomateSimParser.StringContext str = parser.string();
+        Node value = str.accept(visitor);
+        assertEquals("varname", ((StringType)value).getName().getText());
+    }
+
+    @Test
+    void stringTypeErrorTest() {
+        String[] testStrings = {"string ", "string"};
+
+        for (String s: testStrings) {
+            AutomateSimParser parser = constructParser(s);
+
+            AutomateSimParser.StringContext n = parser.string();
+            try {
+                Node value = n.accept(visitor);
+                fail("Expected exception");
+            } catch (RuntimeException ignored) {
+                // pass
+            }
+        }
+    }
+
+    @Test
+    void typeLegalTest() {
+        String testString =
+                """
+                type Light {
+                    enum PowerState [state0, state1]
+                    string Location
+                    number Brightness [0, 10]
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+
+        AutomateSimParser.TypeContext t = parser.type();
+        Type value = (Type) t.accept(visitor);
+        assertEquals("Light", value.getName().getText());
+        assertEquals(3, value.getProperties().size());
+        assertEquals("Location", ((StringType) value.getProperties().get(1)).getName().getText());
+        assertEquals("Brightness", ((NumberType) value.getProperties().get(2)).getName().getText());
+        assertNull(value.getSupertype());
+    }
+
+    @Test
+    void duplicateTypeErrorTest() {
+        String testString =
+                """
+                type Light {
+                    enum PowerState [state0, state1]
+                    string Location
+                    number Brightness [0, 10]
+                }
+                
+                type Light {
+                    enum PowerState [state0, state1]
+                    number Brightness [0, 10]
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+
+        AutomateSimParser.ProgramContext t = parser.program();
+        try {
+            Program value = (Program) t.accept(visitor);
+            fail("Expected exception");
+        } catch (RuntimeException ignored) {}
+    }
+
+    @Test
+    void duplicateTypePropertyErrorTest() {
+        String testString =
+                """
+                type Light {
+                    enum PowerState [state0, state1]
+                    string PowerState
+                    number Brightness [0, 10]
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+
+        AutomateSimParser.TypeContext t = parser.type();
+        try {
+            Type value = (Type) t.accept(visitor);
+            fail("Expected exception");
+        } catch (RuntimeException ignored) {}
+    }
+
+    @Test
+    void typeInheritLegalTest() {
+        String testString =
+                """
+                type Appliance {
+                    enum PowerState [state0, state1]
+                }
+                
+                type Light inherits Appliance {
+                    enum PowerState [state0, state1]
+                    string Location
+                    number Brightness [0, 10]
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+
+        AutomateSimParser.ProgramContext t = parser.program();
+        Program value = (Program) t.accept(visitor);
+        Type superType = (Type) value.getStatements().get(0);
+        Type type = (Type) value.getStatements().get(1);
+
+        assertEquals("Light", type.getName().getText());
+        assertEquals(3, type.getProperties().size());
+        assertEquals("Location", ((StringType) type.getProperties().get(1)).getName().getText());
+        assertEquals("Brightness", ((NumberType) type.getProperties().get(2)).getName().getText());
+        assertEquals(superType, type.getSupertype());
+
+    }
+
+    @Test
+    void typeInheritErrorTest() {
+        String testString =
+                """
+                type Light inherits nothing {
+                    enum PowerState [state0, state1]
+                    string PowerState
+                    number Brightness [0, 10]
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+
+        AutomateSimParser.TypeContext t = parser.type();
+        try {
+            Type value = (Type) t.accept(visitor);
+            fail("Expected exception");
+        } catch (RuntimeException ignored) {}
+    }
+
+    @Test
+    void setStatementLegalTest() {
+        String testString =
+                """
+                type Light {
+                    enum PowerState [state0, state1]
+                    string Location
+                    number Brightness [0, 10]
+                }
+                
+                room LivingRoom {
+                    device living_room_light of Light(state0, "ceiling", 7)
+                    device reading_lamp of DimmableLight(state1, "corner", 5, state2, "IKEA")
+                    device thermostat of TemperatureSensor(active, "wall", 22)
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+
+        AutomateSimParser.ProgramContext t = parser.program();
+
+    }
+
     private static AutomateSimParser constructParser(String legalInput) {
         AutomateSimLexer lexer = new AutomateSimLexer(CharStreams.fromString(legalInput));
         lexer.reset();

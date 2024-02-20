@@ -297,17 +297,29 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             throw new RuntimeException("Type " + typeName.getText() + " is already defined");
         }
 
-        Var superTypeName = new Var(ctx.VAR(1).getText());
-        // Check if the supertype exists
-        Type superType = visitType(superTypeName);
-        if (superType == null) {
-            throw new RuntimeException("Type " + typeName.getText() + " is not defined");
+        Type superType = null;
+        // Check if inheritance
+        if (ctx.VAR(1) != null) {
+            Var superTypeName = new Var(ctx.VAR(1).getText());
+            // Check if the supertype exists
+            superType = visitType(superTypeName);
+            if (superType == null) {
+                throw new RuntimeException("Type " + typeName.getText() + " is not defined");
+            }
         }
+
 
         // Get properties
         List<PropType> properties = new ArrayList<>();
+        Set<String> names = new HashSet<>();
         for (AutomateSimParser.PropertyContext p : ctx.property()) {
-            properties.add((PropType) p.accept(this));
+            PropType property = (PropType) p.accept(this);
+            // Check for duplicate property names
+            if (names.contains(property.getName().getText())) {
+                throw new RuntimeException("Duplicate property name: " + property.getName());
+            }
+            names.add(property.getName().getText());
+            properties.add(property);
         }
 
         Type createdType = new Type(typeName, superType, properties);
@@ -319,6 +331,9 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
 
     @Override
     public StringType visitString(AutomateSimParser.StringContext ctx) {
+        if (ctx.isEmpty()) {
+            throw new RuntimeException("String needs a name");
+        }
         StringType st = new StringType(new Var(ctx.VAR().getText()));
         return st;
     }

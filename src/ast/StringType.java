@@ -1,14 +1,9 @@
 package ast;
 
 public class StringType extends PropType {
-    private final Var name;
 
     public StringType(Var name) {
         this.name = name;
-    }
-
-    public Var getName() {
-        return name;
     }
 
     @Override
