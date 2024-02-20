@@ -4,6 +4,7 @@ import ast.*;
 
 import java.util.List;
 
+import exceptions.ParserException;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
@@ -155,25 +156,60 @@ public class ParserTest {
 
         AutomateSimParser parser = constructParser(legalTestStrings);
 
-        AutomateSimParser.StringContext str = parser.string();
+        AutomateSimParser.PropertyContext str = parser.property();
         Node value = str.accept(visitor);
         assertEquals("varname", ((StringType)value).getName().getText());
     }
 
+//    @Test
+//    void stringTypeErrorTest() {
+//        String[] testStrings = {"asdf", "", "string ", "string"};
+//
+//        for (String s: testStrings) {
+//            AutomateSimParser parser = constructParser(s);
+//
+//            AutomateSimParser.PropertyContext n = parser.property();
+//            try {
+//                Node value = n.accept(visitor);
+//                fail("Expected exception");
+//            } catch (ParserException e) {
+//                // pass
+//            }
+//        }
+//    }
     @Test
-    void stringTypeErrorTest() {
-        String[] testStrings = {"string ", "string"};
+    void stringTypeErrorTest1() {
+        String testString = "asdf";
+        testStringTypeError(testString);
+    }
 
-        for (String s: testStrings) {
-            AutomateSimParser parser = constructParser(s);
+    @Test
+    void stringTypeErrorTest2() {
+        String testString = "";
+        testStringTypeError(testString);
+    }
 
-            AutomateSimParser.StringContext n = parser.string();
-            try {
-                Node value = n.accept(visitor);
-                fail("Expected exception");
-            } catch (RuntimeException ignored) {
-                // pass
-            }
+    @Test
+    void stringTypeErrorTest3() {
+        String testString = "string ";
+        testStringTypeError(testString);
+    }
+
+    @Test
+    void stringTypeErrorTest4() {
+        String testString = "string";
+        testStringTypeError(testString);
+    }
+
+    private void testStringTypeError(String testString) {
+        AutomateSimParser parser = constructParser(testString);
+
+        try {
+            AutomateSimParser.PropertyContext n = parser.property();
+            Node value = n.accept(visitor);
+            fail("Expected exception");
+        } catch (ParserException e) {
+            // pass
         }
     }
 
@@ -221,7 +257,7 @@ public class ParserTest {
         try {
             Program value = (Program) t.accept(visitor);
             fail("Expected exception");
-        } catch (RuntimeException ignored) {}
+        } catch (ParserException ignored) {}
     }
 
     @Test
@@ -241,7 +277,7 @@ public class ParserTest {
         try {
             Type value = (Type) t.accept(visitor);
             fail("Expected exception");
-        } catch (RuntimeException ignored) {}
+        } catch (ParserException ignored) {}
     }
 
     @Test
@@ -253,7 +289,6 @@ public class ParserTest {
                 }
                 
                 type Light inherits Appliance {
-                    enum PowerState [state0, state1]
                     string Location
                     number Brightness [0, 10]
                 }
@@ -291,7 +326,7 @@ public class ParserTest {
         try {
             Type value = (Type) t.accept(visitor);
             fail("Expected exception");
-        } catch (RuntimeException ignored) {}
+        } catch (ParserException ignored) {}
     }
 
     @Test
@@ -321,7 +356,9 @@ public class ParserTest {
         AutomateSimLexer lexer = new AutomateSimLexer(CharStreams.fromString(legalInput));
         lexer.reset();
         TokenStream tokens = new CommonTokenStream(lexer);
-        return new AutomateSimParser(tokens);
+        AutomateSimParser automateSimParser = new AutomateSimParser(tokens);
+        automateSimParser.setErrorHandler(new NoRecoverStrategy());
+        return automateSimParser;
     }
 }
 

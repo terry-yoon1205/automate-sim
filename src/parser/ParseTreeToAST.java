@@ -1,6 +1,8 @@
 package parser;
 
 import ast.*;
+import exceptions.ParserException;
+import org.antlr.v4.runtime.tree.ErrorNodeImpl;
 
 import java.util.*;
 
@@ -37,16 +39,38 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
 
     public Device visitDevice(AutomateSimParser.DeviceContext ctx) {
         if (ctx.arg() != null) {
+            if (ctx.VAR(0) == null) {
+                throw new ParserException("Invalid device name");
+            }
             Var name = new Var(ctx.VAR(0).getText());
-            Type type = visitType(new Var(ctx.VAR(1).getText()));
+            Device device = visitDevice(name);
+            if (device != null) {
+                throw new ParserException("Device " + name.getText() + " does not exist");
+            }
+
+            if (ctx.VAR(1) == null) {
+                throw new ParserException("Invalid type name");
+            }
+
+            Var typeName = new Var(ctx.VAR(1).getText());
+            Type type = visitType(typeName);
             if (type == null) {
-                System.out.println("The type of device does not exist");
-                return null;
+                throw new ParserException("Device " + typeName.getText() + " does not exist");
+            }
+
+
+            List<PropType> typeProperties = type.getProperties();
+            while (type.getSupertype() != null) {
+                typeProperties.addAll(0, type.getSupertype().getProperties());
+                type = type.getSupertype();
+            }
+            if (typeProperties.size() != ctx.arg().size()) {
+                throw new ParserException("Expected " + typeProperties.size() + " arguments, got " + ctx.arg().size());
             }
 
             List<PropVal> values = new ArrayList<>();
             for (int i = 0; i < ctx.arg().size(); i++) {
-                values.add((PropVal) visitArg(ctx.arg(i)));
+                values.add((PropVal) visitArg(ctx.arg(i), device));
             }
             Device createdDevice = new Device(name, type, values);
             addedDevice.add(createdDevice);
@@ -93,9 +117,20 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
 
     public ForStatement visitFor(AutomateSimParser.ForContext ctx) {
 //        if (ctx.statement() != null) {
+        if (ctx.VAR(0) == null) {
+            throw new ParserException("Invalid variable name");
+        }
         Var name = new Var(ctx.VAR(0).getText());
+        if (ctx.VAR(1) == null) {
+            throw new ParserException("Invalid type name");
+        }
         Type type = visitType(new Var(ctx.VAR(1).getText()));
+
+        if (ctx.VAR(2) == null) {
+            throw new ParserException("Invalid room name");
+        }
         Room room = visitRoom(new Var(ctx.VAR(2).getText()));
+
         if (type == null || room == null) {
             System.out.println("The type or the room provided do not exists");
             return null;
@@ -113,11 +148,25 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
 
     public IfStatement visitIf(AutomateSimParser.IfContext ctx) {
 //        if (ctx.statement() != null) {
-            List<Statement> statements = new ArrayList<>();
-            for (AutomateSimParser.StatementContext statement : ctx.statement()) {
-                statements.add((Statement) visitStatement(statement));
-            }
-            return new IfStatement(visitDevice_prop(ctx.device_prop()), (PropVal) visitArg(ctx.arg()), statements);
+        DeviceProp dp = (DeviceProp) ctx.device_prop().accept(this);
+        // Check if device exists
+        Device device = visitDevice(dp.getDevice());
+        if (device == null) {
+            throw new ParserException("Device " + dp.getDevice().getText() + " does not exist");
+        }
+
+        List<PropVal> dValues = device.getValues();
+        // Check if the property of the device exists
+        PropVal deviceProperty = containsProperty(dValues, dp.getProp());
+        if (deviceProperty == null) {
+            throw new ParserException("Device " + device.getName().getText() + " has no property " + dp.getProp().getText());
+        }
+
+        List<Statement> statements = new ArrayList<>();
+        for (AutomateSimParser.StatementContext statement : ctx.statement()) {
+            statements.add((Statement) visitStatement(statement));
+        }
+        return new IfStatement(visitDevice_prop(ctx.device_prop()), (PropVal) visitArg(ctx.arg(), device), statements);
 //        } else {
 //            return new IfStatement(visitDevice_prop(ctx.device_prop()), (PropVal) visitArg(ctx.arg()), Collections.emptyList());
 //        }
@@ -133,12 +182,12 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             int min = Integer.parseInt(ctx.NUM(0).getText());
             int max = Integer.parseInt(ctx.NUM(1).getText());
             if (max < min) {
-                throw new RuntimeException("The first number is the minimum value, the second one is the maximum value.");
+                throw new ParserException("The first number is the minimum value, the second one is the maximum value.");
             }
             return new NumberType(name, min, max);
         } catch (NumberFormatException e){
             System.out.println("Please provide two valid integer separate with an comma");
-        } catch (RuntimeException e) {
+        } catch (ParserException e) {
             System.out.println(e.getMessage());
         }
         return null;
@@ -164,18 +213,17 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
         return (PropType) visitChildren(ctx);
     }
 
-    @Override
-    public PropVal visitArg(AutomateSimParser.ArgContext ctx) {
+    public PropVal visitArg(AutomateSimParser.ArgContext ctx, Device device) {
         //TODO
-//        if (ctx.VAR() != null) {
-//            return new EnumVal()
-//        } else if (ctx.NUM() != null) {
-//
-//        } else if (ctx.STR() != null) {
-//
-//        } else {
-//            throw new RuntimeException("Unknown invalid input");
-//        }
+        if (ctx.VAR() != null) {
+//            return new EnumVal();
+        } else if (ctx.NUM() != null) {
+
+        } else if (ctx.STR() != null) {
+
+        } else {
+            throw new ParserException("Unknown invalid input");
+        }
         return null;
     }
 
@@ -193,10 +241,13 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
     @Override
     public Room visitRoom(AutomateSimParser.RoomContext ctx) {
         List<Device> devices = new ArrayList<>();
+        if (ctx.VAR() == null) {
+            throw new ParserException("Invalid room name");
+        }
         Var roomName = new Var(ctx.VAR().getText());
 
         if (visitRoom(roomName) != null) {
-            throw new RuntimeException("Room " + roomName.getText() + " is already defined");
+            throw new ParserException("Room " + roomName.getText() + " is already defined");
         }
 
         for (AutomateSimParser.DeviceContext r : ctx.device()) {
@@ -223,14 +274,14 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
         // Check if device exists
         Device device = visitDevice(dp.getDevice());
         if (device == null) {
-            throw new RuntimeException("Device " + dp.getDevice().getText() + " does not exist");
+            throw new ParserException("Device " + dp.getDevice().getText() + " does not exist");
         }
 
         List<PropVal> dValues = device.getValues();
         // Check if the property of the device exists
         PropVal deviceProperty = containsProperty(dValues, dp.getProp());
         if (deviceProperty == null) {
-            throw new RuntimeException("Device " + device.getName().getText() + " has no property " + dp.getProp().getText());
+            throw new ParserException("Device " + device.getName().getText() + " has no property " + dp.getProp().getText());
         }
 
         // set to device prop
@@ -241,19 +292,19 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             Device device2 = visitDevice(deviceName);
             // Check if second device exists
             if (device2 == null) {
-                throw new RuntimeException("Device " + dp.getDevice().getText() + " does not exist");
+                throw new ParserException("Device " + dp.getDevice().getText() + " does not exist");
             }
 
             List<PropVal> d2Values = device2.getValues();
             // Check if second device has the property
             PropVal device2Property = containsProperty(d2Values, prop);
             if (device2Property == null) {
-                throw new RuntimeException("Device " + device2.getName().getText() + " has no property " + prop.getText());
+                throw new ParserException("Device " + device2.getName().getText() + " has no property " + prop.getText());
             }
 
             // check if both are same type
             if (!device2Property.getType().equals(deviceProperty.getType())) {
-                throw new RuntimeException("Unexpected type for " + deviceProperty.getVarName());
+                throw new ParserException("Unexpected type for " + deviceProperty.getVarName());
             }
 
             DeviceProp dp2 = new DeviceProp(deviceName, prop);
@@ -264,12 +315,12 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
 
             // Check if it is enum type
             if (!(deviceProperty.getType() instanceof EnumType)) {
-                throw new RuntimeException(deviceProperty.getVarName() + " is not an enum");
+                throw new ParserException(deviceProperty.getVarName() + " is not an enum");
             }
 
             EnumType dEnum = (EnumType) deviceProperty.getType();
             if (!dEnum.getStates().contains(enumValue)) {
-                throw new RuntimeException(enumValue.getText() + " is an invalid stated for " + deviceProperty.getVarName());
+                throw new ParserException(enumValue.getText() + " is an invalid stated for " + deviceProperty.getVarName());
             }
 
             EnumVal ev = new EnumVal(deviceProperty.getVarName(), enumValue, deviceProperty.getType());
@@ -285,26 +336,32 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             NumberVal num = new NumberVal(dp.getProp().getText(), ctx.NUM().getText(), deviceProperty.getType());
             return new SetStatement(dp, num);
         } else {
-            throw new RuntimeException("Unknown invalid input");
+            throw new ParserException("Invalid set value");
         }
     }
 
     @Override
     public Type visitType(AutomateSimParser.TypeContext ctx) {
+        if (ctx.VAR(0) == null) {
+            throw new ParserException("Invalid type name");
+        }
         Var typeName = new Var(ctx.VAR(0).getText());
         // Check if type is already defined
         if (visitType(typeName) != null) {
-            throw new RuntimeException("Type " + typeName.getText() + " is already defined");
+            throw new ParserException("Type " + typeName.getText() + " is already defined");
         }
 
         Type superType = null;
         // Check if inheritance
-        if (ctx.VAR(1) != null) {
+        if (ctx.INHERITS() != null) {
+            if (ctx.VAR(1) == null) {
+                throw new ParserException("Invalid supertype name");
+            }
             Var superTypeName = new Var(ctx.VAR(1).getText());
             // Check if the supertype exists
             superType = visitType(superTypeName);
             if (superType == null) {
-                throw new RuntimeException("Type " + typeName.getText() + " is not defined");
+                throw new ParserException("Type " + typeName.getText() + " is not defined");
             }
         }
 
@@ -316,7 +373,7 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             PropType property = (PropType) p.accept(this);
             // Check for duplicate property names
             if (names.contains(property.getName().getText())) {
-                throw new RuntimeException("Duplicate property name: " + property.getName());
+                throw new ParserException("Duplicate property name: " + property.getName());
             }
             names.add(property.getName().getText());
             properties.add(property);
@@ -331,8 +388,8 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
 
     @Override
     public StringType visitString(AutomateSimParser.StringContext ctx) {
-        if (ctx.isEmpty()) {
-            throw new RuntimeException("String needs a name");
+        if (ctx.VAR() instanceof ErrorNodeImpl) {
+            throw new ParserException("Invalid string variable name");
         }
         StringType st = new StringType(new Var(ctx.VAR().getText()));
         return st;
