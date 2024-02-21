@@ -303,8 +303,8 @@ public class ParserTest {
 
         assertEquals("Light", type.getName().getText());
         assertEquals(3, type.getProperties().size());
-        assertEquals("Location", ((StringType) type.getProperties().get(1)).getName().getText());
-        assertEquals("Brightness", ((NumberType) type.getProperties().get(2)).getName().getText());
+        assertEquals("Location", (type.getProperties().get(1)).getName().getText());
+        assertEquals("Brightness", (type.getProperties().get(2)).getName().getText());
         assertEquals(superType, type.getSupertype());
 
     }
@@ -322,11 +322,58 @@ public class ParserTest {
 
         AutomateSimParser parser = constructParser(testString);
 
-        AutomateSimParser.TypeContext t = parser.type();
         try {
+            AutomateSimParser.TypeContext t = parser.type();
             Type value = (Type) t.accept(visitor);
             fail("Expected exception");
-        } catch (ParserException ignored) {}
+        } catch (ParserException e) {
+            // pass
+        }
+    }
+
+    @Test
+    void typeInheritErrorTest2() {
+        String testString =
+                """
+                type Light inherits {
+                    enum PowerState [state0, state1]
+                    string PowerState
+                    number Brightness [0, 10]
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+
+        try {
+            AutomateSimParser.TypeContext t = parser.type();
+            Type value = (Type) t.accept(visitor);
+            fail("Expected exception");
+        } catch (ParserException e) {
+            System.out.println(e);
+            // pass
+        }
+    }
+
+    @Test
+    void typeInheritErrorTest3() {
+        String testString =
+                """
+                type Light inher {
+                    enum PowerState [state0, state1]
+                    string Location
+                    number Brightness [0, 10]
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+
+        try {
+            AutomateSimParser.TypeContext t = parser.type();
+            Type value = (Type) t.accept(visitor);
+            fail("Expected exception");
+        } catch (ParserException e) {
+            // pass
+        }
     }
 
     @Test
@@ -340,15 +387,21 @@ public class ParserTest {
                 }
                 
                 room LivingRoom {
-                    device living_room_light of Light(state0, "ceiling", 7)
-                    device reading_lamp of DimmableLight(state1, "corner", 5, state2, "IKEA")
-                    device thermostat of TemperatureSensor(active, "wall", 22)
+                    living_room_light of Light(state0, "ceiling", 7)
+                    reading_lamp of DimmableLight(state1, "corner", 5, state2, "IKEA")
+                    thermostat of TemperatureSensor(active, "wall", 22)
                 }
+                
+                
                 """;
 
         AutomateSimParser parser = constructParser(testString);
 
         AutomateSimParser.ProgramContext t = parser.program();
+
+        Program p = (Program) t.accept(visitor);
+
+
 
     }
 

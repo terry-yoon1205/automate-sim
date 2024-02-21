@@ -9,4 +9,10 @@ public class NoRecoverStrategy extends DefaultErrorStrategy {
         super.reportError(recognizer, e);
         throw new ParserException(e);
     }
+
+    @Override
+    protected void reportUnwantedToken(Parser recognizer) {
+        super.reportUnwantedToken(recognizer);
+        throw new ParserException();
+    }
 }
