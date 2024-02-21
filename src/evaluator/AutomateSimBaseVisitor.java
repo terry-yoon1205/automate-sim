@@ -1,7 +1,6 @@
 package evaluator;
 
 import ast.*;
-import model.Property;
 
 public abstract class AutomateSimBaseVisitor<C, T> implements Visitor<C, T> {
     public T visit(C context, Program p) {

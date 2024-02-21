@@ -4,6 +4,7 @@ import ast.*;
 import ast.Action;
 import ast.Device;
 import model.*;
+import model.context.Context;
 import model.interfaces.Parent;
 
 import java.util.HashSet;
@@ -32,16 +33,15 @@ public class AutomateSimEvaluator extends AutomateSimBaseVisitor<Parent, Propert
     }
 
     @Override
+    public Property visit(Parent parent, Type p) {
+        // type information is not retained in the program
+        // only used during checks and evaluation
+        return null;
+    }
+
+    @Override
     public Property visit(Parent parent, Room p) {
-        String name = p.getName().getText();
-        Set<String> deviceNames = new HashSet<>();
-
-        for (Device d : p.getDevices()) {
-            deviceNames.add(d.getName().getText());
-            d.accept(parent, this);
-        }
-
-        Context.addRoom(name, deviceNames);
+        // room information is also not retained in the program
         return null;
     }
 
@@ -84,13 +84,6 @@ public class AutomateSimEvaluator extends AutomateSimBaseVisitor<Parent, Propert
         }
 
         return new EnumProp(p.getVarName(), p.getValue(), modelStates);
-    }
-
-    @Override
-    public Property visit(Parent parent, Type p) {
-        // type information is not retained in the program
-        // only used during checks and evaluation
-        return null;
     }
 
     @Override

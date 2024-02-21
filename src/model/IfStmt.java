@@ -1,9 +1,7 @@
 package model;
 
+import model.context.Context;
 import model.interfaces.Parent;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class IfStmt extends Stmt implements Parent { // composite of the composite pattern
     private final String val;
