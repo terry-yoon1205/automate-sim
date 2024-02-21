@@ -42,7 +42,9 @@ public class Context {
         actions.put(name, a);
     }
 
-    public static Action getAction(String name) {return actions.get(name); }
+    public static Action getAction(String name) {
+        return actions.get(name);
+    }
 
     public static void appendError(String error) {
         errors.append(error).append("\n");

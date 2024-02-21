@@ -37,16 +37,6 @@ public class TestEvaluator implements Visitor<StringBuilder, Object> {
             action.add(st);
         }
 
-        // TODO
-        Context.addAction(p.getName().getText(), action);
-
-
-        return null;
-    }
-
-    @Override
-    public Object visit(StringBuilder context, Decl p) {
-        // this is not a real class
         return null;
     }
 
@@ -170,8 +160,6 @@ public class TestEvaluator implements Visitor<StringBuilder, Object> {
     @Override
     public Object visit(StringBuilder context, DeviceProp p) {
         System.out.println("DEVICEPROP");
-//        model.Device d = new model.Device(p.getDevice().toString());
-
         context.append(p.getDevice() + "." + p.getProp());
         return null;
     }
@@ -249,7 +237,6 @@ public class TestEvaluator implements Visitor<StringBuilder, Object> {
                 p.getDeviceProp().getProp().getText(),
                 p.getValue().getValue()
         );
-        // TODO: add child stmts to "children".
 
         context.append("\nIF: ");
         context.append(p.getValue());
@@ -265,7 +252,6 @@ public class TestEvaluator implements Visitor<StringBuilder, Object> {
     @Override
     public Object visit(StringBuilder context, ForStatement p) {
         ForStmt forStmt = new ForStmt();
-        // TODO: add devices of specified type in room to "devices" and add child stmts to "children".
 
         context.append("\nFOR: ");
         context.append("{");
