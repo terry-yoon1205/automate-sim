@@ -6,26 +6,14 @@ import ast.Device;
 import model.*;
 import model.interfaces.Parent;
 
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-public class AutomateSimEvaluator implements Visitor<Parent, String> {
-    private final HashMap<String, model.Action> actions = new HashMap<>();
-
+public class AutomateSimEvaluator extends AutomateSimBaseVisitor<Parent, Property> {
     @Override
-    public String visit(Parent context, Program p) {
-        for (Decl d : p.getStatements()) {
-            d.accept(context, this);
-        }
-
-        return null;
-    }
-
-    @Override
-    public String visit(Parent context, Action p) {
+    public Property visit(Parent parent, Action p) {
         model.Action action = new model.Action();
-
-        String actionName = p.getName().getText();
-        actions.put(actionName, action);
 
         for (DeviceProp d : p.getTriggers()) {
             String deviceName = d.getDevice().getText();
@@ -44,57 +32,69 @@ public class AutomateSimEvaluator implements Visitor<Parent, String> {
     }
 
     @Override
-    public String visit(Parent context, Var p) {
+    public Property visit(Parent parent, Room p) {
+        String name = p.getName().getText();
+        Set<String> deviceNames = new HashSet<>();
+
+        for (Device d : p.getDevices()) {
+            deviceNames.add(d.getName().getText());
+            d.accept(parent, this);
+        }
+
+        Context.addRoom(name, deviceNames);
         return null;
     }
 
     @Override
-    public String visit(Parent context, Room p) {
+    public Property visit(Parent parent, Device p) {
+        String name = p.getName().getText();
+        model.Device device = new model.Device(name);
+
+        for (PropVal pv : p.getValues()) {
+            Property prop = pv.accept(parent, this);
+            device.addProp(prop);
+        }
+
+        Context.addDevice(device);
         return null;
     }
 
     @Override
-    public String visit(Parent context, Type p) {
+    public Property visit(Parent parent, NumberVal p) {
+        String name = p.getVarName();
+        String value = p.getValue();
+        int min = p.getType().getMin();
+        int max = p.getType().getMax();
+
+        return new NumberProp(name, value, min, max);
+    }
+
+    @Override
+    public Property visit(Parent parent, StringVal p) {
+        return new StringProp(p.getVarName(), p.getValue());
+    }
+
+    @Override
+    public Property visit(Parent parent, EnumVal p) {
+        List<Var> astStates = p.getType().getStates();
+        Set<String> modelStates = new HashSet<>();
+
+        for (Var v : astStates) {
+            modelStates.add(v.getText());
+        }
+
+        return new EnumProp(p.getVarName(), p.getValue(), modelStates);
+    }
+
+    @Override
+    public Property visit(Parent parent, Type p) {
+        // type information is not retained in the program
+        // only used during checks and evaluation
         return null;
     }
 
     @Override
-    public String visit(Parent context, NumberVal p) {
-        return null;
-    }
-
-    @Override
-    public String visit(Parent context, StringVal p) {
-        return null;
-    }
-
-    @Override
-    public String visit(Parent context, EnumVal p) {
-        return null;
-    }
-
-    @Override
-    public String visit(Parent context, NumberType p) {
-        return null;
-    }
-
-    @Override
-    public String visit(Parent context, StringType p) {
-        return null;
-    }
-
-    @Override
-    public String visit(Parent context, EnumType p) {
-        return null;
-    }
-
-    @Override
-    public String visit(Parent context, Device p) {
-        return null;
-    }
-
-    @Override
-    public String visit(Parent context, SetStatement p) {
+    public Property visit(Parent parent, SetStatement p) {
         SetStmt stmt;
 
         String deviceName = p.getDeviceProp().getDevice().getText();
@@ -107,18 +107,18 @@ public class AutomateSimEvaluator implements Visitor<Parent, String> {
                     p.getDynamicVal().getProp().getText());
         }
 
-        context.add(stmt);
+        parent.add(stmt);
         return null;
     }
 
     @Override
-    public String visit(Parent context, IfStatement p) {
+    public Property visit(Parent parent, IfStatement p) {
         String deviceName = p.getDeviceProp().getDevice().getText();
         String propName = p.getDeviceProp().getProp().getText();
         String ifVal = p.getValue().getValue();
 
         IfStmt stmt = new IfStmt(deviceName, propName, ifVal);
-        context.add(stmt);
+        parent.add(stmt);
 
         // add child statements
         for (Statement s : p.getStatements()) {
@@ -129,14 +129,15 @@ public class AutomateSimEvaluator implements Visitor<Parent, String> {
     }
 
     @Override
-    public String visit(Parent context, ForStatement p) {
+    public Property visit(Parent parent, ForStatement p) {
         ForStmt stmt = new ForStmt();
-        context.add(stmt);
+        parent.add(stmt);
 
         // add devices of the specified type in that are in the specified room
         for (Device d : p.getRoom().getDevices()) {
             Type deviceType = d.getType();
             boolean typeMatch = false;
+
             while ((deviceType = deviceType.getSupertype()) != null) {
                 if (deviceType == p.getType()) {
                     typeMatch = true;
@@ -156,11 +157,4 @@ public class AutomateSimEvaluator implements Visitor<Parent, String> {
 
         return null;
     }
-
-    @Override
-    public String visit(Parent context, DeviceProp p) {
-        // not needed
-        return null;
-    }
-
 }
