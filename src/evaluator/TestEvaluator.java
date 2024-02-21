@@ -7,7 +7,7 @@ import model.*;
 
 import java.util.*;
 
-public class Evaluator implements Visitor<StringBuilder, Object> {
+public class TestEvaluator implements Visitor<StringBuilder, Object> {
     List<Stmt> tempStmt = new ArrayList<>();
 
     @Override
@@ -22,6 +22,7 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
     public Object visit(StringBuilder context, Action p) {
         model.Action action = new model.Action();
         tempStmt.clear();
+
         context.append("\nAction: ");
         context.append(p.getName());
 
@@ -32,7 +33,7 @@ public class Evaluator implements Visitor<StringBuilder, Object> {
             s.accept(context, this);
         }
 
-        for(Stmt st : tempStmt){
+        for (Stmt st : tempStmt) {
             action.add(st);
         }
 

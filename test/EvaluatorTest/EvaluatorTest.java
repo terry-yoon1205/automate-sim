@@ -1,12 +1,11 @@
 package EvaluatorTest;
 
 import ast.*;
-import evaluator.Evaluator;
+import evaluator.TestEvaluator;
 import model.Context;
 
 import model.IfStmt;
 import model.SetStmt;
-import model.Stmt;
 
 import org.junit.jupiter.api.Test;
 
@@ -114,7 +113,7 @@ public class EvaluatorTest {
 
         Program program = new Program(decls);
 
-        Evaluator evaluator = new Evaluator();
+        TestEvaluator evaluator = new TestEvaluator();
         StringBuilder stringBuilder = new StringBuilder();
         evaluator.visit(stringBuilder, program);
 
