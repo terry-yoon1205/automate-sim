@@ -1,13 +1,13 @@
 package EvaluatorTest;
 
 import ast.*;
-import evaluator.Evaluator;
-import model.Context;
+import evaluator.TestEvaluator;
+import model.context.Context;
 
 import model.IfStmt;
 import model.SetStmt;
-import model.Stmt;
 
+import model.context.TestContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -114,7 +114,7 @@ public class EvaluatorTest {
 
         Program program = new Program(decls);
 
-        Evaluator evaluator = new Evaluator();
+        TestEvaluator evaluator = new TestEvaluator();
         StringBuilder stringBuilder = new StringBuilder();
         evaluator.visit(stringBuilder, program);
 
@@ -122,9 +122,9 @@ public class EvaluatorTest {
 
         System.out.println(output);
 
-        HashMap<String, Set<String>> rooms =  Context.getRooms();
+        HashMap<String, Set<String>> rooms =  TestContext.getRooms();
         HashMap<String, model.Device> devices = Context.getDevices();
-        HashMap<String, model.Action> actions = Context.getActions();
+        HashMap<String, model.Action> actions = TestContext.getActions();
 
 
         // room checks

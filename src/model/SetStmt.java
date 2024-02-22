@@ -1,5 +1,7 @@
 package model;
 
+import model.context.Context;
+
 public class SetStmt extends Stmt { // leaf of the composite pattern
     private final String val;
     private final String srcDevice;

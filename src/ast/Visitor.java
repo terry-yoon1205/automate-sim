@@ -6,8 +6,6 @@ public interface Visitor<C, T> {
 
     T visit(C context, Action p);
 
-    T visit(C context, Decl p);
-
     T visit(C context, Var p);
 
     T visit(C context, Room p);
@@ -27,6 +25,7 @@ public interface Visitor<C, T> {
     T visit(C context, EnumType p);
 
     T visit(C context, DeviceProp p);
+
     T visit(C context, Device p);
 
     T visit(C context, SetStatement p);

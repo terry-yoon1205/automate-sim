@@ -1,20 +1,16 @@
 package model;
 
+import model.interfaces.Parent;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class ForStmt extends Stmt { // composite of the composite pattern
-    private final List<Stmt> children;
+public class ForStmt extends Stmt implements Parent { // composite of the composite pattern
     private final List<String> devices;
 
     public ForStmt() {
         super(null, null);
-        this.children = new ArrayList<>();
         this.devices = new ArrayList<>();
-    }
-
-    public void addStmt(Stmt stmt) {
-        children.add(stmt);
     }
 
     public void addDevice(String device) {

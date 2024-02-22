@@ -1,28 +1,19 @@
 package model;
 
 import model.interfaces.Observer;
+import model.interfaces.Parent;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Action extends Observer {
-    private final List<Stmt> stmts;
-
-    public Action() {
-        stmts = new ArrayList<>();
-    }
-
-    public void add(Stmt s) {
-        stmts.add(s);
-    }
-
+public class Action extends Observer implements Parent {
     public List<Stmt> getStmts() {
-        return stmts;
+        return children;
     }
 
     @Override
     public void update() {
-        for (Stmt s : stmts) {
+        for (Stmt s : children) {
             s.execute();
         }
     }
