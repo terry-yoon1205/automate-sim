@@ -1,6 +1,7 @@
 package ui;
 
 import model.*;
+import model.context.Context;
 
 import java.util.Scanner;
 

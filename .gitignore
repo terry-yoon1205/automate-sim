@@ -1,3 +1,4 @@
 .idea
-/gen/
-/out/
+gen
+out
+*.iml
