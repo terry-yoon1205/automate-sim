@@ -10,22 +10,52 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ParserTest {
     static ParseTreeToAST visitor;
 
-    @BeforeAll
-    public static void initialization() {
+    @BeforeEach
+    public void initialization() {
         visitor = new ParseTreeToAST();
     }
 
     @Test
     void ActionTest() {
-        String legalInput = "action sync_heaters on [main_heater.level, bedroom_heater.level] {\nset bedroom_heater.level to main_heater.level\n}";
+        String legalInput = """
+                type Switch {
+                    enum state [ON, OFF]
+                }
+                type Light {
+                    enum power [ON, OFF]
+                }
+                type DimmableLight inherits Light {
+                    enum power [DIMMED]
+                }
+                type Heater {
+                    number level [0, 10]
+                    enum power [ON, OFF]
+                }
+                
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_lamp of DimmableLight(OFF)
+                    bedroom_heater of Heater(0, OFF)
+                }
+                room Main {
+                    main_heater of Heater(0, OFF)
+                }
+                action sync_heaters on [main_heater.level, bedroom_heater.level] {
+                    set bedroom_heater.level to main_heater.level
+                }
+                """;
         AutomateSimParser parser = constructParser(legalInput);
-        AutomateSimParser.ActionContext a = parser.action();
-        Node testAction = a.accept(visitor);
+        AutomateSimParser.ProgramContext p = parser.program();
+        Program testProgram = (Program) p.accept(visitor);
+
+        Node testAction = testProgram.getStatements().get(6);
         assertEquals(Action.class, testAction.getClass());
         assertEquals(new Var("sync_heaters"), ((Action) testAction).getName());
         assertEquals(2, ((Action) testAction).getTriggers().size());
@@ -35,6 +65,24 @@ public class ParserTest {
     @Test
     void ComplexActionTest() {
         String legalInput = """
+                type Switch {
+                    enum state [ON, OFF]
+                }
+                type Light {
+                    enum power [ON, OFF]
+                }
+                type DimmableLight inherits Light {
+                    enum power [DIMMED]
+                }
+                type Heater {
+                    enum power [ON, OFF]
+                }
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_lamp of DimmableLight(OFF)
+                    bedroom_heater of Heater(OFF)
+                }
                 action bedroom_all on bedroom_switch.state {
                     if bedroom_switch.state is ON {
                         set bedroom_light.power to ON
@@ -43,8 +91,10 @@ public class ParserTest {
                     }
                 }""";
         AutomateSimParser parser = constructParser(legalInput);
-        AutomateSimParser.ActionContext a = parser.action();
-        Node testAction = a.accept(visitor);
+        AutomateSimParser.ProgramContext a = parser.program();
+        Program testProgram = (Program) a.accept(visitor);
+        assertEquals(6, testProgram.getStatements().size());
+        Action testAction = (Action) testProgram.getStatements().get(5);
         assertEquals(Action.class, testAction.getClass());
         assertEquals(new Var("bedroom_all"), ((Action) testAction).getName());
         assertEquals(1, ((Action) testAction).getTriggers().size());
@@ -81,23 +131,49 @@ public class ParserTest {
     void EnumTypeErrorTest() {
         String legalInput = "enum power []";
         AutomateSimParser parser = constructParser(legalInput);
-        AutomateSimParser.EnumContext e = parser.enum_();
-        Node testEnumType = e.accept(visitor);
-        assertNull(testEnumType);
+        try {
+            AutomateSimParser.EnumContext e = parser.enum_();
+            Node testEnumType = e.accept(visitor);
+            fail("Expected exception");
+        } catch (ParserException e) {
+            //pass
+        }
     }
 
     @Test
     void IfStatementTest() {
-        String legalInput = """
-                if bedroom_switch.state is ON {
-                        set bedroom_light.power to ON
-                        set bedroom_lamp.power to DIMMED
-                        set bedroom_heater.power to ON
-                    }""";
+        String legalInput =
+                """
+                type Switch {
+                    enum state [ON, OFF]
+                }
+                type Light {
+                    enum power [ON, OFF]
+                }
+                type DimmableLight inherits Light {
+                    enum power [DIMMED]
+                }
+                type Heater {
+                    enum power [ON, OFF]
+                }
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_lamp of DimmableLight(OFF)
+                    bedroom_heater of Heater(OFF)
+                }
+                action bedroom_all on bedroom_switch.state {
+                    if bedroom_switch.state is ON {
+                            set bedroom_light.power to ON
+                            set bedroom_lamp.power to DIMMED
+                            set bedroom_heater.power to ON
+                    }
+                }""";
 
         AutomateSimParser parser = constructParser(legalInput);
-        AutomateSimParser.IfContext e = parser.if_();
-        Node testIfStmt = e.accept(visitor);
+        AutomateSimParser.ProgramContext p = parser.program();
+        Program testProgram = (Program) p.accept(visitor);
+        Node testIfStmt = ((Action) testProgram.getStatements().get(5)).getStatements().getFirst();
         assertEquals("bedroom_switch", ((IfStatement) testIfStmt).getDeviceProp().getDevice().getText());
         assertEquals("state", ((IfStatement) testIfStmt).getDeviceProp().getProp().getText());
 
@@ -112,11 +188,34 @@ public class ParserTest {
 
     @Test
     void IfEmptyStatementTest() {
-        String legalInput = "if bedroom_switch.state is ON {\n" +
-                "    }";
+        String legalInput = """
+                type Switch {
+                    enum state [ON, OFF]
+                }
+                type Light {
+                    enum power [ON, OFF]
+                }
+                type DimmableLight inherits Light {
+                    enum power [DIMMED]
+                }
+                type Heater {
+                    enum power [ON, OFF]
+                }
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_lamp of DimmableLight(OFF)
+                    bedroom_heater of Heater(OFF)
+                }
+                action bedroom_all on bedroom_switch.state {
+                    if bedroom_switch.state is ON {\n
+                    }
+                }
+                """;
         AutomateSimParser parser = constructParser(legalInput);
-        AutomateSimParser.IfContext e = parser.if_();
-        Node testIfStmt = e.accept(visitor);
+        AutomateSimParser.ProgramContext p = parser.program();
+        Program testProgram = (Program) p.accept(visitor);
+        Node testIfStmt = ((Action) testProgram.getStatements().get(5)).getStatements().getFirst();
         PropVal actual = ((IfStatement) testIfStmt).getValue();
         assertEquals("state", actual.getVarName());
         assertEquals("ON", actual.getValue());
@@ -143,9 +242,13 @@ public class ParserTest {
         for (String s : errorTestStrings) {
             AutomateSimParser parser = constructParser(s);
 
-            AutomateSimParser.NumberContext n = parser.number();
-            Node testNumberType = n.accept(visitor);
-            assertNull(testNumberType);
+            try {
+                AutomateSimParser.NumberContext n = parser.number();
+                Node testNumberType = n.accept(visitor);
+                fail("Expected exception");
+            } catch (ParserException e) {
+                //pass
+            }
         }
 
     }
@@ -161,22 +264,22 @@ public class ParserTest {
         assertEquals("varname", ((StringType)value).getName().getText());
     }
 
-//    @Test
-//    void stringTypeErrorTest() {
-//        String[] testStrings = {"asdf", "", "string ", "string"};
-//
-//        for (String s: testStrings) {
-//            AutomateSimParser parser = constructParser(s);
-//
-//            AutomateSimParser.PropertyContext n = parser.property();
-//            try {
-//                Node value = n.accept(visitor);
-//                fail("Expected exception");
-//            } catch (ParserException e) {
-//                // pass
-//            }
-//        }
-//    }
+    @Test
+    void stringTypeErrorTest() {
+        String[] testStrings = {"asdf", "", "string ", "string"};
+
+        for (String s: testStrings) {
+            AutomateSimParser parser = constructParser(s);
+
+            try {
+                AutomateSimParser.PropertyContext n = parser.property();
+                Node value = n.accept(visitor);
+                fail("Expected exception");
+            } catch (ParserException e) {
+                // pass
+            }
+        }
+    }
     @Test
     void stringTypeErrorTest1() {
         String testString = "asdf";
@@ -380,19 +483,33 @@ public class ParserTest {
     void setStatementLegalTest() {
         String testString =
                 """
+                type Switch {
+                    enum state [ON, OFF]
+                }
                 type Light {
-                    enum PowerState [state0, state1]
-                    string Location
-                    number Brightness [0, 10]
+                    enum power [ON, OFF]
                 }
-                
-                room LivingRoom {
-                    living_room_light of Light(state0, "ceiling", 7)
-                    reading_lamp of DimmableLight(state1, "corner", 5, state2, "IKEA")
-                    thermostat of TemperatureSensor(active, "wall", 22)
+                type DimmableLight inherits Light {
+                    string name
+                    number id [0, 100]
+                    enum power [DIMMED]
                 }
-                
-                
+                type Heater {
+                    enum power [ON, OFF]
+                }
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_lamp of DimmableLight("help", 0, OFF)
+                    bedroom_heater of Heater(OFF)
+                }
+                action bedroom_all on bedroom_switch.state {
+                    if bedroom_switch.state is ON {
+                        set bedroom_lamp.id to 1
+                        set bedroom_lamp.power to DIMMED
+                        set bedroom_lamp.name to "me"
+                    }
+                }
                 """;
 
         AutomateSimParser parser = constructParser(testString);
@@ -400,9 +517,18 @@ public class ParserTest {
         AutomateSimParser.ProgramContext t = parser.program();
 
         Program p = (Program) t.accept(visitor);
-
-
-
+        SetStatement s0 = (SetStatement) ((IfStatement) ((Action)p.getStatements().getLast()).getStatements().getFirst()).getStatements().get(0);
+        assertEquals(new DeviceProp(new Var("bedroom_lamp"), new Var("id")), s0.getDeviceProp());
+        assertEquals("id" , s0.getStaticVal().getVarName());
+        assertEquals("1" , s0.getStaticVal().getValue());
+        SetStatement s1 = (SetStatement) ((IfStatement) ((Action)p.getStatements().getLast()).getStatements().getFirst()).getStatements().get(1);
+        assertEquals(new DeviceProp(new Var("bedroom_lamp"), new Var("power")), s1.getDeviceProp());
+        assertEquals("power" , s1.getStaticVal().getVarName());
+        assertEquals("DIMMED" , s1.getStaticVal().getValue());
+        SetStatement s2 = (SetStatement) ((IfStatement) ((Action)p.getStatements().getLast()).getStatements().getFirst()).getStatements().get(2);
+        assertEquals(new DeviceProp(new Var("bedroom_lamp"), new Var("name")), s2.getDeviceProp());
+        assertEquals("name" , s2.getStaticVal().getVarName());
+        assertEquals("me" , s2.getStaticVal().getValue());
     }
 
     private static AutomateSimParser constructParser(String legalInput) {
