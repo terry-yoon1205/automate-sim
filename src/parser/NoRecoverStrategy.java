@@ -15,4 +15,10 @@ public class NoRecoverStrategy extends DefaultErrorStrategy {
         super.reportUnwantedToken(recognizer);
         throw new ParserException();
     }
+
+    @Override
+    protected void reportMissingToken(Parser recognizer) {
+        super.reportMissingToken(recognizer);
+        throw new ParserException();
+    }
 }

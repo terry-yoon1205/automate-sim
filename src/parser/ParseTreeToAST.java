@@ -384,12 +384,17 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             return new SetStatement(dp, ev);
         // set to string
         } else if (ctx.STR() != null) {
+            if (!(deviceProperty.getType() instanceof StringType)) {
+                throw new ParserException(deviceProperty.getVarName() + " is not a string");
+            }
             StringVal string = new StringVal(dp.getProp().getText(), ctx.STR().getText().replace("\"", ""), deviceProperty.getType());
 
             return new SetStatement(dp, string);
         // set to number
         } else if (ctx.NUM() != null) {
-            //todo  check static
+            if (!(deviceProperty.getType() instanceof NumberType)) {
+                throw new ParserException(deviceProperty.getVarName() + " is not an number");
+            }
             NumberVal num = new NumberVal(dp.getProp().getText(), ctx.NUM().getText(), deviceProperty.getType());
             return new SetStatement(dp, num);
         } else {
