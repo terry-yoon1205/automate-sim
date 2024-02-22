@@ -267,7 +267,7 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             int min = ((NumberType) propType).getMin();
             int max = ((NumberType) propType).getMax();
             int value = Integer.parseInt(ctx.NUM().getText());
-            if (!((min <= value) && (value <= max))) {
+            if (value < min || max < value) {
                 throw new ParserException(value + " out of bounds " + "[" + min + ", " + max + "]");
             }
             return new NumberVal(propType.getName().getText(), ctx.NUM().getText(), propType);
@@ -395,6 +395,18 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             if (!(deviceProperty.getType() instanceof NumberType)) {
                 throw new ParserException(deviceProperty.getVarName() + " is not an number");
             }
+
+            try {
+                int min = ((NumberType) deviceProperty.getType()).getMin();
+                int max = ((NumberType) deviceProperty.getType()).getMax();
+                int value = Integer.parseInt(ctx.NUM().getText());
+                if (value < min || max < value) {
+                    throw new ParserException(value + " out of bounds " + "[" + min + ", " + max + "]");
+                }
+            } catch (NumberFormatException e){
+                throw new ParserException("Please provide two valid integer separate with an comma");
+            }
+
             NumberVal num = new NumberVal(dp.getProp().getText(), ctx.NUM().getText(), deviceProperty.getType());
             return new SetStatement(dp, num);
         } else {
