@@ -277,4 +277,12 @@ We are still mainly focusing on finishing the implementation, so the video hasn'
 ### Timeline:
 The main features of the evaluator are mostly implemented, so we are focusing more on streamlining the UI and related functionality. Once the parser is complete, we will meet as a group during the break to integrate the two parts, and wrap up anything else that needs to be worked on.
 
+TODO:
+
+Finish all tests by end of Friday:
+- Remaining parser tests
+- Evaluator tests
+- end-to-end tests once the previous 2 are complete
+- video planning
+
 ---
