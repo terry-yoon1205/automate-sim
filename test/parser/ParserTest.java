@@ -983,6 +983,219 @@ public class ParserTest {
 //        assertEquals("me" , s2.getStaticVal().getValue());
     }
 
+    @Test
+    void setStatementMissingDeviceTest() {
+        String testString =
+                """
+                type Switch {
+                    enum state [ON, OFF]
+                }
+                type Light {
+                    enum power [ON, OFF]
+                }
+                type DimmableLight inherits Light {
+                    string name
+                    number id [0, 100]
+                    enum power [DIMMED]
+                }
+                type Heater {
+                    enum power [ON, OFF]
+                }
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_heater of Heater(OFF)
+                }
+                action bedroom_all on bedroom_switch.state {
+                    if bedroom_switch.state is ON {
+                        set bedroom_lamp.id to 1
+                        set bedroom_lamp.power to ON
+                        set bedroom_lamp.name to "me"
+                    }
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+        try {
+            AutomateSimParser.ProgramContext t = parser.program();
+            Program p = (Program) t.accept(visitor);
+            fail("Expected exception");
+        } catch (ParserException e) {
+            //pass
+        }
+    }
+
+    @Test
+    void setStatementDynamicTypeTest() {
+        String testString =
+                """
+                type Switch {
+                    enum state [ON, OFF]
+                }
+                type Light {
+                    enum power [ON, OFF]
+                }
+                type DimmableLight inherits Light {
+                    string name
+                    number id [0, 100]
+                    enum power [DIMMED]
+                }
+                type Heater {
+                    enum power [ON, OFF]
+                }
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_lamp of DimmableLight("help", 0, OFF)
+                    bedroom_heater of Heater(OFF)
+                }
+                action bedroom_all on bedroom_switch.state {
+                    if bedroom_switch.state is ON {
+                        set bedroom_lamp.id to 1
+                        set bedroom_lamp.power to bedroom_switch.state
+                        set bedroom_lamp.name to "me"
+                    }
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+        try {
+            AutomateSimParser.ProgramContext t = parser.program();
+            Program p = (Program) t.accept(visitor);
+            fail("Expected exception");
+        } catch (ParserException e) {
+            //pass
+        }
+    }
+
+    @Test
+    void setStatementDynamicTypePropTest() {
+        String testString =
+                """
+                type Switch {
+                    enum state [ON, OFF]
+                }
+                type Light {
+                    enum power [ON, OFF]
+                }
+                type DimmableLight inherits Light {
+                    string name
+                    number id [0, 100]
+                    enum power [DIMMED]
+                }
+                type Heater {
+                    enum power [ON, OFF]
+                }
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_lamp of DimmableLight("help", 0, OFF)
+                    bedroom_heater of Heater(OFF)
+                }
+                action bedroom_all on bedroom_switch.state {
+                    if bedroom_switch.state is ON {
+                        set bedroom_lamp.id to 1
+                        set bedroom_lamp.power to bedroom_switch.pow
+                        set bedroom_lamp.name to "me"
+                    }
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+        try {
+            AutomateSimParser.ProgramContext t = parser.program();
+            Program p = (Program) t.accept(visitor);
+            fail("Expected exception");
+        } catch (ParserException e) {
+            //pass
+        }
+    }
+
+    @Test
+    void setStatementBoundTest() {
+        String testString =
+                """
+                type Switch {
+                    enum state [ON, OFF]
+                }
+                type Light {
+                    enum power [ON, OFF]
+                }
+                type DimmableLight inherits Light {
+                    string name
+                    number id [0, 100]
+                    enum power [DIMMED]
+                }
+                type Heater {
+                    enum power [ON, OFF]
+                }
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_lamp of DimmableLight("help", 0, OFF)
+                    bedroom_heater of Heater(OFF)
+                }
+                action bedroom_all on bedroom_switch.state {
+                    if bedroom_switch.state is ON {
+                        set bedroom_lamp.id to 3200
+                        set bedroom_lamp.power to DIMMED
+                        set bedroom_lamp.name to "me"
+                    }
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+        try {
+            AutomateSimParser.ProgramContext t = parser.program();
+            Program p = (Program) t.accept(visitor);
+            fail("Expected exception");
+        } catch (ParserException e) {
+            //pass
+        }
+    }
+
+    @Test
+    void setStatementErrorTest6() {
+        String testString =
+                """
+                type Switch {
+                    enum state [ON, OFF]
+                }
+                type Light {
+                    enum power [ON, OFF]
+                }
+                type DimmableLight inherits Light {
+                    string name
+                    number id [0, 100]
+                    enum power [DIMMED]
+                }
+                type Heater {
+                    enum power [ON, OFF]
+                }
+                room Bedroom {
+                    bedroom_switch of Switch(OFF)
+                    bedroom_light of Light(OFF)
+                    bedroom_lamp of DimmableLight("help", 0, OFF)
+                    bedroom_heater of Heater(OFF)
+                }
+                action bedroom_all on bedroom_switch.state {
+                    if bedroom_switch.state is ON {
+                        set bedroom_lamp.dwe to 1
+                        set bedroom_lamp.power to DIMMED
+                        set bedroom_lamp.name to "me"
+                    }
+                }
+                """;
+
+        AutomateSimParser parser = constructParser(testString);
+        try {
+            AutomateSimParser.ProgramContext t = parser.program();
+            Program p = (Program) t.accept(visitor);
+            fail("Expected exception");
+        } catch (ParserException e) {
+            //pass
+        }
+    }
     void setStatementErrorTest() {
         String testString =
                 """
@@ -1024,7 +1237,7 @@ public class ParserTest {
             //pass
         }
     }
-
+    @Test
     void setStatementErrorTest2() {
         String testString =
                 """
@@ -1066,7 +1279,7 @@ public class ParserTest {
             //pass
         }
     }
-
+    @Test
     void setStatementErrorTest3() {
         String testString =
                 """
@@ -1108,7 +1321,7 @@ public class ParserTest {
             //pass
         }
     }
-
+    @Test
     void setStatementErrorTest4() {
         String testString =
                 """
@@ -1150,7 +1363,7 @@ public class ParserTest {
             //pass
         }
     }
-
+    @Test
     void setStatementErrorTest5() {
         String testString =
                 """
