@@ -1,6 +1,7 @@
 package ast;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Device extends Node {
     private final Var name;
@@ -23,6 +24,18 @@ public class Device extends Node {
 
     public List<PropVal> getValues() {
         return values;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Device device)) return false;
+        return Objects.equals(name, device.name) && Objects.equals(type, device.type) && Objects.equals(values, device.values);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, type, values);
     }
 
     @Override

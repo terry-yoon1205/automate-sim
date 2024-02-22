@@ -1,7 +1,6 @@
 package ast;
 
 public class NumberType extends PropType {
-    private final Var name;
     private final int min;
     private final int max;
 
@@ -9,10 +8,6 @@ public class NumberType extends PropType {
         this.name = name;
         this.min = min;
         this.max = max;
-    }
-
-    public Var getName() {
-        return name;
     }
 
     public int getMin() {

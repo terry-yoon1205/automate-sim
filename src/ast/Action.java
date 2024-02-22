@@ -1,6 +1,7 @@
 package ast;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Action extends Decl {
     private final Var name;
@@ -23,6 +24,18 @@ public class Action extends Decl {
 
     public Var getName() {
         return name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Action action)) return false;
+        return Objects.equals(name, action.name) && Objects.equals(triggers, action.triggers) && Objects.equals(statements, action.statements);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, triggers, statements);
     }
 
     @Override
