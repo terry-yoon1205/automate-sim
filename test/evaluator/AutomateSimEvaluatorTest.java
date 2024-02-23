@@ -33,8 +33,8 @@ public class AutomateSimEvaluatorTest {
     public static Device mainLight;
     public static Device mainHeater;
 
-    @BeforeAll
-    static void setUpAst() {
+    @BeforeEach
+    public void setUpAst() {
         /*
          * type Light { enum power [ON, OFF] string color }
          * type SmallLight inherits Light { enum power [DIMMED] }
@@ -116,14 +116,14 @@ public class AutomateSimEvaluatorTest {
     void testSimpleAction() {
         /*
          * one simple action:
-         * action turn_on_lamp on main_light.power {
+         * action turn_on_bedroom_light on main_light.power {
          *     set bedroom_light.power to ON
          * }
          */
         SetStatement set = new SetStatement(new DeviceProp(new Var("bedroom_light"), new Var("power")),
                 new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
 
-        Action action = new Action(new Var("turn_on_lamp"),
+        Action action = new Action(new Var("turn_on_bedroom_light"),
                 List.of(new DeviceProp(new Var("main_light"), new Var("power"))), List.of(set));
 
         program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom, action));
@@ -149,6 +149,54 @@ public class AutomateSimEvaluatorTest {
     @Test
     void testMultiplePropagatingActions() {
         // two actions, one trigger the other (also include a dynamic set statement)
+
+        /*
+         * two simple actions:
+         * action turn_on_bedroom_light on main_light.power {
+         *     set bedroom_light.power to ON
+         * }
+         *
+         * action turn_up_heater on bedroom_light.power {
+         *     set bedroom_heater.level to 8
+         * }
+         */
+
+        SetStatement set1 = new SetStatement(new DeviceProp(new Var("bedroom_light"), new Var("power")),
+                new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
+
+        Action action1 = new Action(new Var("turn_on_bedroom_light"),
+                List.of(new DeviceProp(new Var("main_light"), new Var("power"))), List.of(set1));
+
+        SetStatement set2 = new SetStatement(new DeviceProp(new Var("bedroom_heater"), new Var("level")),
+                new NumberVal("level", "8", bedroomHeater.getType().getProperties().get(1)));
+
+        Action action2 = new Action(new Var("turn_up_heater"),
+                List.of(new DeviceProp(new Var("bedroom_light"), new Var("power"))), List.of(set2));
+
+        program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom, action1, action2));
+        eval.visit(null, program);
+
+        assertEquals(2, TestContext.getRooms().size());
+        assertEquals(2, TestContext.getActions().size());
+        assertEquals(5, Context.getDevices().size());
+
+        model.Device modelMainLight = Context.getDevice("main_light");
+        assertNotNull(modelMainLight);
+
+        model.Property lightPowerProp = modelMainLight.getProp("power");
+        assertNotNull(lightPowerProp);
+
+        lightPowerProp.mutate("ON");
+
+        List<String> prints = TestContext.getPrints();
+        assertEquals(2, prints.size());
+        assertEquals("power of bedroom_light has been changed to ON.", prints.get(0));
+        assertEquals("level of bedroom_heater has been changed to 8.", prints.get(1));
+
+
+
+
+
     }
 
     @Test
