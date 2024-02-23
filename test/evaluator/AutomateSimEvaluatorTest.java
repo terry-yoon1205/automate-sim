@@ -148,10 +148,8 @@ public class AutomateSimEvaluatorTest {
 
     @Test
     void testMultiplePropagatingActions() {
-        // two actions, one trigger the other (also include a dynamic set statement)
-
         /*
-         * two simple actions:
+         * two simple actions, where one triggers the other:
          * action turn_on_bedroom_light on main_light.power {
          *     set bedroom_light.power to ON
          * }
@@ -192,11 +190,6 @@ public class AutomateSimEvaluatorTest {
         assertEquals(2, prints.size());
         assertEquals("power of bedroom_light has been changed to ON.", prints.get(0));
         assertEquals("level of bedroom_heater has been changed to 8.", prints.get(1));
-
-
-
-
-
     }
 
     @Test

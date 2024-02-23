@@ -5,12 +5,13 @@ import model.interfaces.Parent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ForStmt extends Stmt implements Parent { // composite of the composite pattern
+public class ForStmt extends Stmt { // composite of the composite pattern
     private final List<String> devices;
 
     public ForStmt() {
         super(null, null);
         this.devices = new ArrayList<>();
+        this.children = new ArrayList<>();
     }
 
     public void addDevice(String device) {

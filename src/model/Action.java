@@ -6,9 +6,13 @@ import model.interfaces.Parent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Action extends Observer implements Parent {
+public class Action extends Observer {
     public List<Stmt> getStmts() {
         return children;
+    }
+
+    public Action() {
+        children = new ArrayList<>();
     }
 
     @Override

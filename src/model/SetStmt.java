@@ -13,6 +13,7 @@ public class SetStmt extends Stmt { // leaf of the composite pattern
         this.val = val;
         this.srcDevice = null;
         this.srcProp = null;
+        this.children = null;   // set statement doesn't have children
     }
 
     public SetStmt(String device, String prop, String srcDevice, String srcProp) {
@@ -20,6 +21,7 @@ public class SetStmt extends Stmt { // leaf of the composite pattern
         this.val = null;
         this.srcDevice = srcDevice;
         this.srcProp = srcProp;
+        this.children = null;
     }
 
     public String getVal() {
