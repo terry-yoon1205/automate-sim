@@ -1,6 +1,7 @@
 package model;
 
 import model.context.Context;
+import model.context.TestContext;
 
 public class SetStmt extends Stmt { // leaf of the composite pattern
     private final String val;
@@ -48,6 +49,6 @@ public class SetStmt extends Stmt { // leaf of the composite pattern
         }
 
         String out = String.format("%s of %s has been changed to %s.", prop, device, result);
-        System.out.println(out);
+        TestContext.print(out);
     }
 }
