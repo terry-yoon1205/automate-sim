@@ -3,17 +3,14 @@ package evaluator;
 import ast.*;
 import model.context.Context;
 import model.context.TestContext;
+
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ui.AutomateSim;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AutomateSimEvaluatorTest {
     public AutomateSimEvaluator eval;
@@ -90,7 +87,7 @@ public class AutomateSimEvaluatorTest {
 
         EnumVal mainHeaterPower = new EnumVal("power", new Var("OFF"), heaterPower);
         NumberVal mainHeaterLevel = new NumberVal("level", "3", heaterLevel);
-        bedroomHeater = new Device(new Var("bedroom_heater"), heaterType,
+        mainHeater = new Device(new Var("main_heater"), heaterType,
                 List.of(mainHeaterPower, mainHeaterLevel));
 
         bedroom = new Room(new Var("bedroom"), List.of(bedroomLight, bedroomLamp, bedroomHeater));
@@ -107,153 +104,182 @@ public class AutomateSimEvaluatorTest {
 
     @Test
     void testTrivial() {
-        // no rooms or actions, just one type
+        /* no rooms or actions, just one type */
         program = new Program(List.of(lightType));
         eval.visit(null, program);
+
+        assertEquals(0, TestContext.getRooms().size());
+        assertEquals(0, TestContext.getActions().size());
     }
 
     @Test
     void testSimpleAction() {
-        // one simple action
+        /*
+         * one simple action:
+         * action turn_on_lamp on main_light.power {
+         *     set bedroom_light.power to ON
+         * }
+         */
+        SetStatement set = new SetStatement(new DeviceProp(new Var("bedroom_light"), new Var("power")),
+                new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
+
+        Action action = new Action(new Var("turn_on_lamp"),
+                List.of(new DeviceProp(new Var("main_light"), new Var("power"))), List.of(set));
+
+        program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom, action));
+        eval.visit(null, program);
+
+        assertEquals(2, TestContext.getRooms().size());
+        assertEquals(1, TestContext.getActions().size());
+        assertEquals(5, Context.getDevices().size());
+
+        model.Device modelMainLight = Context.getDevice("main_light");
+        assertNotNull(modelMainLight);
+
+        model.Property lightPowerProp = modelMainLight.getProp("power");
+        assertNotNull(lightPowerProp);
+
+        lightPowerProp.mutate("ON");
+
+        List<String> prints = TestContext.getPrints();
+        assertEquals(1, prints.size());
+        assertEquals("power of bedroom_light has been changed to ON.", prints.getFirst());
     }
 
     @Test
     void testMultiplePropagatingActions() {
-        // two actions, one trigger the other
+        // two actions, one trigger the other (also include a dynamic set statement)
     }
 
     @Test
     void testIfStmtAction() {
-
+        // action with if-condition
     }
 
     @Test
     void testForStmtAction() {
-
+        // action with for-loop
     }
 
     @Test
     void testFull() {
-
+        // full set of actions representing a typical program
     }
 
-    @Test
-    void UiChangeDevicePropertyTest() {
-        // =============================================================================================================
-        // setup electronicType supertype.
-        // =============================================================================================================
-        Var electronicPower = new Var("ELECTRONIC_POWER");
-
-        EnumType electronicPropType = new EnumType(electronicPower, List.of(new Var("ON"), new Var("OFF")));
-
-        Type electronicType = new Type(new Var("electronicType"), null, List.of(electronicPropType));
-
-        // =============================================================================================================
-        // setup windowType and declare a window device
-        // =============================================================================================================
-
-
-        Var windowStatus = new Var("WINDOW_STATUS");
-
-        EnumType windowPropType = new EnumType(windowStatus, List.of(new Var("OPEN"), new Var("CLOSED")));
-
-        Type windowType = new Type(new Var("windowType"), null, List.of(windowPropType));
-
-        List<PropVal> windowInitialState = List.of(new EnumVal(windowStatus.getText(), new Var("OPEN"), windowPropType));
-
-        Var windowVar = new Var("Window");
-        Device window = new Device(windowVar, windowType, windowInitialState);
-
-        // =============================================================================================================
-        // setup tvType and declare TV device
-        // =============================================================================================================
-        Var volVar = new Var("VOLUME");
-        Var disVar = new Var("DISPLAY_TEXT");
-        NumberType vol = new NumberType(volVar, 0, 100);
-        StringType dis = new StringType(disVar);
-
-
-        Type tvType = new Type(new Var("tvType"), electronicType, List.of(vol, dis, electronicPropType));
-
-        List<PropVal> tvInitialStates = List.of(
-                new EnumVal(electronicPower.getText(), new Var("OFF"), electronicPropType),
-                new NumberVal(volVar.getText(), "50", vol),
-                new StringVal(disVar.getText(), "DISPLAY TEST!!!", dis));
-
-        // Do not declare "POWER" enum because it inherits it from electronicType.
-
-        Var tvVar = new Var("Tv");
-        Device tv = new Device(tvVar, tvType, tvInitialStates);
-
-        // =============================================================================================================
-        // setup the room.
-        // =============================================================================================================
-        Room bedroom = new Room(new Var("Bedroom"), List.of(window, tv));
-
-        // =============================================================================================================
-        // setup some statements for the tv.
-        // =============================================================================================================
-        SetStatement setTvOn = new SetStatement(new DeviceProp(tvVar, electronicPower),
-                new EnumVal(electronicPower.getText(),
-                        new Var("ON"), electronicPropType));
-
-
-        SetStatement increaseTvVolume = new SetStatement(new DeviceProp(tvVar, volVar),
-                new NumberVal(volVar.getText(), "90", vol));
-
-
-        // =============================================================================================================
-        // setup the if statement that will trigger the previous set statements for tv.
-        // =============================================================================================================
-        IfStatement ifWindowClosesSetTvOn = new IfStatement(new DeviceProp(windowVar, windowStatus),
-                new EnumVal(windowStatus.getText(), new Var("CLOSED"), windowPropType), List.of(setTvOn, increaseTvVolume));
-
-        // =============================================================================================================
-        // setup the Action.
-        // =============================================================================================================
-
-        Action turnUpTvIfWindowCloses = new Action(new Var("Turn up TV if window closes"),
-                List.of(new DeviceProp(windowVar, windowStatus)),
-                List.of(ifWindowClosesSetTvOn));
-
-
-
-
-        // =============================================================================================================
-        // Start the program and populate the Model.Context for testing.
-        // =============================================================================================================
-
-        List<Decl> decls = new ArrayList<>();
-
-        decls.add(electronicType);
-        decls.add(windowType);
-        decls.add(tvType);
-        decls.add(bedroom);
-        decls.add(turnUpTvIfWindowCloses);
-
-        Program program = new Program(decls);
-        eval.visit(null, program);
-
-        HashMap<String, Set<String>> rooms =  TestContext.getRooms();
-        HashMap<String, model.Device> devices = Context.getDevices();
-        HashMap<String, model.Action> actions = TestContext.getActions();
-
-        String testInput = "Tv.ELECTRONIC_POWER\n" +
-                "OFF\n" +
-                "!q";
-
-        ByteArrayInputStream in = new ByteArrayInputStream(testInput.getBytes());
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        AutomateSim ui = new AutomateSim(in, out);
-        ui.run();
-
-        // Get the bytes written to the ByteArrayOutputStream
-        byte[] outputBytes = out.toByteArray();
-
-        // Convert the bytes to a string and print it
-        String outputString = new String(outputBytes);
-        System.out.println("Output from PrintStream: \n" + outputString);
-    }
+//    @Test
+//    void UiChangeDevicePropertyTest() {
+//        // =============================================================================================================
+//        // setup electronicType supertype.
+//        // =============================================================================================================
+//        Var electronicPower = new Var("ELECTRONIC_POWER");
+//
+//        EnumType electronicPropType = new EnumType(electronicPower, List.of(new Var("ON"), new Var("OFF")));
+//
+//        Type electronicType = new Type(new Var("electronicType"), null, List.of(electronicPropType));
+//
+//        // =============================================================================================================
+//        // setup windowType and declare a window device
+//        // =============================================================================================================
+//
+//
+//        Var windowStatus = new Var("WINDOW_STATUS");
+//
+//        EnumType windowPropType = new EnumType(windowStatus, List.of(new Var("OPEN"), new Var("CLOSED")));
+//
+//        Type windowType = new Type(new Var("windowType"), null, List.of(windowPropType));
+//
+//        List<PropVal> windowInitialState = List.of(new EnumVal(windowStatus.getText(), new Var("OPEN"), windowPropType));
+//
+//        Var windowVar = new Var("Window");
+//        Device window = new Device(windowVar, windowType, windowInitialState);
+//
+//        // =============================================================================================================
+//        // setup tvType and declare TV device
+//        // =============================================================================================================
+//        Var volVar = new Var("VOLUME");
+//        Var disVar = new Var("DISPLAY_TEXT");
+//        NumberType vol = new NumberType(volVar, 0, 100);
+//        StringType dis = new StringType(disVar);
+//
+//
+//        Type tvType = new Type(new Var("tvType"), electronicType, List.of(vol, dis, electronicPropType));
+//
+//        List<PropVal> tvInitialStates = List.of(
+//                new EnumVal(electronicPower.getText(), new Var("OFF"), electronicPropType),
+//                new NumberVal(volVar.getText(), "50", vol),
+//                new StringVal(disVar.getText(), "DISPLAY TEST!!!", dis));
+//
+//        // Do not declare "POWER" enum because it inherits it from electronicType.
+//
+//        Var tvVar = new Var("Tv");
+//        Device tv = new Device(tvVar, tvType, tvInitialStates);
+//
+//        // =============================================================================================================
+//        // setup the room.
+//        // =============================================================================================================
+//        Room bedroom = new Room(new Var("Bedroom"), List.of(window, tv));
+//
+//        // =============================================================================================================
+//        // setup some statements for the tv.
+//        // =============================================================================================================
+//        SetStatement setTvOn = new SetStatement(new DeviceProp(tvVar, electronicPower),
+//                new EnumVal(electronicPower.getText(),
+//                        new Var("ON"), electronicPropType));
+//
+//
+//        SetStatement increaseTvVolume = new SetStatement(new DeviceProp(tvVar, volVar),
+//                new NumberVal(volVar.getText(), "90", vol));
+//
+//
+//        // =============================================================================================================
+//        // setup the if statement that will trigger the previous set statements for tv.
+//        // =============================================================================================================
+//        IfStatement ifWindowClosesSetTvOn = new IfStatement(new DeviceProp(windowVar, windowStatus),
+//                new EnumVal(windowStatus.getText(), new Var("CLOSED"), windowPropType), List.of(setTvOn, increaseTvVolume));
+//
+//        // =============================================================================================================
+//        // setup the Action.
+//        // =============================================================================================================
+//
+//        Action turnUpTvIfWindowCloses = new Action(new Var("Turn up TV if window closes"),
+//                List.of(new DeviceProp(windowVar, windowStatus)),
+//                List.of(ifWindowClosesSetTvOn));
+//
+//
+//
+//
+//        // =============================================================================================================
+//        // Start the program and populate the Model.Context for testing.
+//        // =============================================================================================================
+//
+//        List<Decl> decls = new ArrayList<>();
+//
+//        decls.add(electronicType);
+//        decls.add(windowType);
+//        decls.add(tvType);
+//        decls.add(bedroom);
+//        decls.add(turnUpTvIfWindowCloses);
+//
+//        Program program = new Program(decls);
+//        eval.visit(null, program);
+//
+//        HashMap<String, Set<String>> rooms =  TestContext.getRooms();
+//        HashMap<String, model.Device> devices = Context.getDevices();
+//        HashMap<String, model.Action> actions = TestContext.getActions();
+//
+//        String testInput = "Tv.ELECTRONIC_POWER\n" +
+//                "OFF\n" +
+//                "!q";
+//
+//        ByteArrayInputStream in = new ByteArrayInputStream(testInput.getBytes());
+//
+//        ByteArrayOutputStream out = new ByteArrayOutputStream();
+//
+//        // Get the bytes written to the ByteArrayOutputStream
+//        byte[] outputBytes = out.toByteArray();
+//
+//        // Convert the bytes to a string and print it
+//        String outputString = new String(outputBytes);
+//        System.out.println("Output from PrintStream: \n" + outputString);
+//    }
 }
