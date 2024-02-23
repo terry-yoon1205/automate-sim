@@ -3,23 +3,20 @@ package EvaluatorTest;
 import ast.*;
 import evaluator.TestEvaluator;
 import model.context.Context;
-
-import model.IfStmt;
-import model.SetStmt;
-
 import model.context.TestContext;
 import org.junit.jupiter.api.Test;
+import ui.AutomateSim;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-public class EvaluatorTest {
+public class AutomateSimEvaluatorTest {
     @Test
-    void basicRoomDecl() {
+    void UiChangeDevicePropertyTest() {
         // =============================================================================================================
         // setup electronicType supertype.
         // =============================================================================================================
@@ -75,27 +72,27 @@ public class EvaluatorTest {
         // setup some statements for the tv.
         // =============================================================================================================
         SetStatement setTvOn = new SetStatement(new DeviceProp(tvVar, electronicPower),
-                                                new EnumVal(electronicPower.getText(),
-                                                        new Var("ON"), electronicPropType));
+                new EnumVal(electronicPower.getText(),
+                        new Var("ON"), electronicPropType));
 
 
         SetStatement increaseTvVolume = new SetStatement(new DeviceProp(tvVar, volVar),
-                                                         new NumberVal(volVar.getText(), "90", vol));
+                new NumberVal(volVar.getText(), "90", vol));
 
 
         // =============================================================================================================
         // setup the if statement that will trigger the previous set statements for tv.
         // =============================================================================================================
         IfStatement ifWindowClosesSetTvOn = new IfStatement(new DeviceProp(windowVar, windowStatus),
-                                            new EnumVal(windowStatus.getText(), new Var("CLOSED"), windowPropType), List.of(setTvOn, increaseTvVolume));
+                new EnumVal(windowStatus.getText(), new Var("CLOSED"), windowPropType), List.of(setTvOn, increaseTvVolume));
 
         // =============================================================================================================
         // setup the Action.
         // =============================================================================================================
 
         Action turnUpTvIfWindowCloses = new Action(new Var("Turn up TV if window closes"),
-                                        List.of(new DeviceProp(windowVar, windowStatus)),
-                                        List.of(ifWindowClosesSetTvOn));
+                List.of(new DeviceProp(windowVar, windowStatus)),
+                List.of(ifWindowClosesSetTvOn));
 
 
 
@@ -120,68 +117,28 @@ public class EvaluatorTest {
 
         String output = stringBuilder.toString();
 
-
         System.out.println(output);
 
         HashMap<String, Set<String>> rooms =  TestContext.getRooms();
         HashMap<String, model.Device> devices = Context.getDevices();
         HashMap<String, model.Action> actions = TestContext.getActions();
 
+        String testInput = "Tv.ELECTRONIC_POWER\n" +
+                "OFF\n" +
+                "!q";
 
-        // room checks
-        assertEquals(1, rooms.size());
-        assertNotNull(rooms.get("Bedroom"));
+        ByteArrayInputStream in = new ByteArrayInputStream(testInput.getBytes());
 
-        // device checks
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        // window
-        model.Device windowTest = devices.get(windowVar.getText());
+        AutomateSim ui = new AutomateSim(in, out);
+        ui.run();
 
-        assertNotNull(windowTest);
-        assertSame(windowTest.getName(), windowVar.getText());
+        // Get the bytes written to the ByteArrayOutputStream
+        byte[] outputBytes = out.toByteArray();
 
-        assertNotNull(windowTest.getProp(windowStatus.getText()));
-
-        assertSame("OPEN", windowTest.getProp(windowStatus.getText()).getValue());
-
-
-        // tv
-        model.Device tvTest = devices.get(tvVar.getText());
-
-        assertNotNull(tvTest);
-        assertSame(tvTest.getName(), tvVar.getText());
-
-        assertNotNull(tvTest.getProp(volVar.getText()));
-        assertNotNull(tvTest.getProp(disVar.getText()));
-        assertNotNull(tvTest.getProp(electronicPower.getText()));
-
-        assertSame("50", tvTest.getProp(volVar.getText()).getValue());
-        assertSame("DISPLAY TEST!!!", tvTest.getProp(disVar.getText()).getValue());
-        assertSame("OFF", tvTest.getProp(electronicPower.getText()).getValue());
-
-
-
-        // action tests
-
-        assertEquals(1, actions.size());
-
-        model.Action actionTest = actions.get(turnUpTvIfWindowCloses.getName().getText());
-
-        assertNotNull(actionTest);
-
-        assertEquals(3, actionTest.getStmts().size());
-
-        SetStmt tvElecPower = (SetStmt) actionTest.getStmts().get(0);
-        SetStmt tvVol       = (SetStmt) actionTest.getStmts().get(1);
-        IfStmt windowClose  = (IfStmt) actionTest.getStmts().get(2);
-
-        assertNotNull(tvElecPower);
-        assertEquals(electronicPower.getText(), tvElecPower.getVal());
-
-        assertNotNull(tvVol);
-        assertEquals(volVar.getText(), tvVol.getVal());
-
-        assertNotNull(windowClose);
-        assertEquals("CLOSED", windowClose.getVal());
+        // Convert the bytes to a string and print it
+        String outputString = new String(outputBytes);
+        System.out.println("Output from PrintStream: \n" + outputString);
     }
 }
