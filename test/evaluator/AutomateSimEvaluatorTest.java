@@ -1,9 +1,10 @@
-package EvaluatorTest;
+package evaluator;
 
 import ast.*;
-import evaluator.TestEvaluator;
 import model.context.Context;
 import model.context.TestContext;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ui.AutomateSim;
 
@@ -15,6 +16,127 @@ import java.util.List;
 import java.util.Set;
 
 public class AutomateSimEvaluatorTest {
+    public AutomateSimEvaluator eval;
+    public Program program;
+
+    // types
+    public static Type lightType;
+    public static Type smallLightType;
+    public static Type heaterType;
+
+    // rooms
+    public static Room bedroom;
+    public static Room livingRoom;
+
+    // devices
+    public static Device bedroomLight;
+    public static Device bedroomLamp;
+    public static Device bedroomHeater;
+
+    public static Device mainLight;
+    public static Device mainHeater;
+
+    @BeforeAll
+    static void setUpAst() {
+        /*
+         * type Light { enum power [ON, OFF] string color }
+         * type SmallLight inherits Light { enum power [DIMMED] }
+         * type Heater { enum power [ON, OFF] number level [0, 10] }
+         */
+        EnumType lightPower = new EnumType(new Var("power"), List.of(new Var("ON"), new Var("OFF")));
+        StringType lightColor = new StringType(new Var("color"));
+
+        EnumType smallLightPower = new EnumType(new Var("power"),
+                List.of(new Var("ON"), new Var("DIMMED"), new Var("OFF")));
+
+        EnumType heaterPower = new EnumType(new Var("power"), List.of(new Var("ON"), new Var("OFF")));
+        NumberType heaterLevel = new NumberType(new Var("level"), 0, 10);
+
+        lightType = new Type(new Var("Light"), null, List.of(lightPower, lightColor));
+        smallLightType = new Type(new Var("SmallLight"), lightType, List.of(smallLightPower, lightColor));
+        heaterType = new Type(new Var("Heater"), null, List.of(heaterPower, heaterLevel));
+
+        /*
+         * room bedroom {
+         *      bedroom_light of Light(OFF, "ffffff")
+         *      bedroom_lamp of SmallLight(OFF, "ffebd9")
+         *      bedroom_heater of Heater(OFF, 3)
+         *  }
+         *
+         *  room living_room {
+         *      main_light of Light(OFF, "ffffff")
+         *      main_heater of Heater(OFF, 3)
+         *  }
+         */
+        EnumVal bedroomLightPower = new EnumVal("power", new Var("OFF"), lightPower);
+        StringVal bedroomLightColor = new StringVal("level", "ffffff", lightColor);
+        bedroomLight = new Device(new Var("bedroom_light"), lightType,
+                List.of(bedroomLightPower, bedroomLightColor));
+
+        EnumVal bedroomLampPower = new EnumVal("power", new Var("OFF"), smallLightPower);
+        StringVal bedroomLampColor = new StringVal("level", "ffebd9", lightColor);
+        bedroomLamp = new Device(new Var("bedroom_lamp"), smallLightType,
+                List.of(bedroomLampPower, bedroomLampColor));
+
+        EnumVal bedroomHeaterPower = new EnumVal("power", new Var("OFF"), heaterPower);
+        NumberVal bedroomHeaterLevel = new NumberVal("level", "3", heaterLevel);
+        bedroomHeater = new Device(new Var("bedroom_heater"), heaterType,
+                List.of(bedroomHeaterPower, bedroomHeaterLevel));
+
+        EnumVal mainLightPower = new EnumVal("power", new Var("OFF"), lightPower);
+        StringVal mainLightColor = new StringVal("level", "ffffff", lightColor);
+        mainLight = new Device(new Var("main_light"), lightType,
+                List.of(mainLightPower, mainLightColor));
+
+        EnumVal mainHeaterPower = new EnumVal("power", new Var("OFF"), heaterPower);
+        NumberVal mainHeaterLevel = new NumberVal("level", "3", heaterLevel);
+        bedroomHeater = new Device(new Var("bedroom_heater"), heaterType,
+                List.of(mainHeaterPower, mainHeaterLevel));
+
+        bedroom = new Room(new Var("bedroom"), List.of(bedroomLight, bedroomLamp, bedroomHeater));
+        livingRoom = new Room(new Var("living_room"), List.of(mainLight, mainHeater));
+    }
+
+    @BeforeEach
+    void setUp() {
+        Context.clear();
+        TestContext.clear();
+
+        eval = new AutomateSimEvaluator();
+    }
+
+    @Test
+    void testTrivial() {
+        // no rooms or actions, just one type
+        program = new Program(List.of(lightType));
+        eval.visit(null, program);
+    }
+
+    @Test
+    void testSimpleAction() {
+        // one simple action
+    }
+
+    @Test
+    void testMultiplePropagatingActions() {
+        // two actions, one trigger the other
+    }
+
+    @Test
+    void testIfStmtAction() {
+
+    }
+
+    @Test
+    void testForStmtAction() {
+
+    }
+
+    @Test
+    void testFull() {
+
+    }
+
     @Test
     void UiChangeDevicePropertyTest() {
         // =============================================================================================================
@@ -110,14 +232,7 @@ public class AutomateSimEvaluatorTest {
         decls.add(turnUpTvIfWindowCloses);
 
         Program program = new Program(decls);
-
-        TestEvaluator evaluator = new TestEvaluator();
-        StringBuilder stringBuilder = new StringBuilder();
-        evaluator.visit(stringBuilder, program);
-
-        String output = stringBuilder.toString();
-
-        System.out.println(output);
+        eval.visit(null, program);
 
         HashMap<String, Set<String>> rooms =  TestContext.getRooms();
         HashMap<String, model.Device> devices = Context.getDevices();

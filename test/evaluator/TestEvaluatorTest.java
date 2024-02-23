@@ -1,7 +1,6 @@
-package EvaluatorTest;
+package evaluator;
 
 import ast.*;
-import evaluator.TestEvaluator;
 import model.context.Context;
 
 import model.IfStmt;
@@ -17,7 +16,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class EvaluatorTest {
+public class TestEvaluatorTest {
     @Test
     void basicRoomDecl() {
         // =============================================================================================================
