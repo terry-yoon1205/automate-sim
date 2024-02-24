@@ -143,16 +143,8 @@ public class AutomateSimEvaluator extends AutomateSimBaseVisitor<Parent, Propert
         // add devices of the specified type in that are in the specified room
         for (Device d : p.getRoom().getDevices()) {
             Type deviceType = d.getType();
-            boolean typeMatch = false;
 
-            while ((deviceType = deviceType.getSupertype()) != null) {
-                if (deviceType == p.getType()) {
-                    typeMatch = true;
-                    break;
-                }
-            }
-
-            if (typeMatch) {
+            if (p.getType() == deviceType || p.getType() == deviceType.getSupertype()) {
                 stmt.addDevice(d.getName().getText());
             }
         }

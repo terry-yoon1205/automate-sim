@@ -42,7 +42,13 @@ public class SetStmt extends Stmt { // leaf of the composite pattern
         String result;
 
         if (val != null) {
-            p.mutate(val);  // should never return false
+            Boolean mutateResult = p.mutate(val);  // should never return false
+
+            if (!mutateResult) {
+                // TestContext.print("Mutate failed due to invalid value.");
+                return;
+            }
+
             result = val;
         } else {
             Property other = Context.getDevice(srcDevice).getProp(srcProp);

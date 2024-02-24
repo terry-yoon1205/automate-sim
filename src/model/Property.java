@@ -1,5 +1,6 @@
 package model;
 
+import model.context.TestContext;
 import model.interfaces.Subject;
 
 public abstract class Property extends Subject {
@@ -12,8 +13,10 @@ public abstract class Property extends Subject {
     }
 
     public boolean mutate(String value) {
-        if (!isValid(value))
+        if (!isValid(value)) {
+            TestContext.print("Mutate failed due to invalid value.");
             return false;
+        }
 
         this.value = value;
         notifyObservers();

@@ -188,139 +188,281 @@ public class AutomateSimEvaluatorTest {
 
         List<String> prints = TestContext.getPrints();
         assertEquals(2, prints.size());
-        assertEquals("power of bedroom_light has been changed to ON.", prints.get(0));
-        assertEquals("level of bedroom_heater has been changed to 8.", prints.get(1));
+        assertEquals("level of bedroom_heater has been changed to 8.", prints.get(0));
+        assertEquals("power of bedroom_light has been changed to ON.", prints.get(1));
+
     }
 
     @Test
     void testIfStmtAction() {
         // action with if-condition
+        /*
+         * two simple actions, where one triggers the other:
+         * action turn_on_bedroom_light on main_light.power {
+         *     if main_light.power is OFF {
+         *        set bedroom_light.power to ON
+         *     }
+         * }
+         */
+
+        SetStatement set1 = new SetStatement(new DeviceProp(new Var("bedroom_light"), new Var("power")),
+                new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
+
+        IfStatement if1 = new IfStatement(new DeviceProp(new Var("main_light"), new Var("power")),
+                new EnumVal("power", new Var("OFF"), mainLight.getType().getProperties().getFirst()),
+                List.of(set1));
+
+        Action action1 = new Action(new Var("turn_on_bedroom_light"),
+                List.of(new DeviceProp(new Var("main_light"), new Var("power"))), List.of(if1));
+
+        program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom, action1));
+        eval.visit(null, program);
+
+
+        // asserts
+        assertEquals(2, TestContext.getRooms().size());
+        assertEquals(1, TestContext.getActions().size());
+        assertEquals(5, Context.getDevices().size());
+
+        model.Device modelMainLight = Context.getDevice("main_light");
+        assertNotNull(modelMainLight);
+
+        model.Property lightPowerProp = modelMainLight.getProp("power");
+        assertNotNull(lightPowerProp);
+
+        lightPowerProp.mutate("ON");
+
+        List<String> prints = TestContext.getPrints();
+        assertEquals(0, prints.size());
+
+        lightPowerProp.mutate("OFF");
+
+        prints = TestContext.getPrints();
+
+        assertEquals(1, prints.size());
+        assertEquals("power of bedroom_light has been changed to ON.", prints.get(0));
+
+
     }
 
     @Test
     void testForStmtAction() {
         // action with for-loop
+        /*
+         * two simple actions, where one triggers the other:
+         * action turn_on_bedroom_light on main_light.power { // this should turn off all Type light objects and it's children!
+         *     if main_light.power is OFF {
+         *        set bedroom_light.power to ON
+         *     }
+         * }
+         */
+
+        SetStatement set1 = new SetStatement(new DeviceProp(new Var("Light"), new Var("power")),
+                new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
+
+
+        ForStatement for1 = new ForStatement(new Var("turn_off_all_bedroom_lights"), lightType, bedroom, List.of(set1));
+
+        Action action1 = new Action(new Var("turn_on_bedroom_light"),
+                List.of(new DeviceProp(new Var("main_light"), new Var("power"))), List.of(for1));
+
+
+        program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom, action1));
+        eval.visit(null, program);
+
+        // asserts
+        assertEquals(2, TestContext.getRooms().size());
+        assertEquals(1, TestContext.getActions().size());
+        assertEquals(5, Context.getDevices().size());
+
+
+        // checking bedroom_light to make sure it's initially OFF
+        model.Device modelBedroomLight = Context.getDevice("bedroom_light");
+        assertNotNull(modelBedroomLight);
+
+        model.Property bedroomLightPowerProp = modelBedroomLight.getProp("power");
+        assertNotNull(bedroomLightPowerProp);
+        assertEquals("OFF", bedroomLightPowerProp.getValue());
+
+        // checking bedroom_lamp to make sure it's initially OFF
+        model.Device modelBedroomLamp = Context.getDevice("bedroom_lamp");
+        assertNotNull(modelBedroomLamp);
+
+        model.Property bedroomLampPowerProp = modelBedroomLamp.getProp("power");
+        assertNotNull(bedroomLampPowerProp);
+        assertEquals("OFF", bedroomLampPowerProp.getValue());
+
+
+        // triggering the action
+        model.Device modelMainLight = Context.getDevice("main_light");
+        assertNotNull(modelMainLight);
+
+        model.Property lightPowerProp = modelMainLight.getProp("power");
+        assertNotNull(lightPowerProp);
+
+        lightPowerProp.mutate("ON");
+
+        List<String> prints = TestContext.getPrints();
+        assertEquals(2, prints.size());
+        assertEquals("power of bedroom_light has been changed to ON.", prints.get(0));
+        assertEquals("power of bedroom_lamp has been changed to ON.", prints.get(1));
+
+
+    }
+
+    @Test
+    void testInheritance() {
+
+        program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom));
+        eval.visit(null, program);
+
+        model.Device modelBedroomLamp = Context.getDevice("bedroom_lamp");
+        assertNotNull(modelBedroomLamp);
+
+        model.Property bedroomLampPowerProp = modelBedroomLamp.getProp("power");
+        assertNotNull(bedroomLampPowerProp);
+        assertEquals("OFF", bedroomLampPowerProp.getValue());
+
+        bedroomLampPowerProp.mutate("DIMMED");
+
+        // List<String> prints = TestContext.getPrints();
+
+        assertNotNull(bedroomLampPowerProp);
+        assertEquals("DIMMED", bedroomLampPowerProp.getValue());
+    }
+
+    @Test
+    void testInvalidSet() {
+        /*
+         * two simple actions, where one triggers the other:
+         * action turn_on_bedroom_light on main_light.power {
+         *     set bedroom_light.power to ON
+         * }
+         *
+         * action turn_up_heater on bedroom_light.power {   // THIS ACTION SHOULD FAIL.
+         *     set bedroom_heater.level to 14
+         * }
+         */
+
+        SetStatement set1 = new SetStatement(new DeviceProp(new Var("bedroom_light"), new Var("power")),
+                new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
+
+        Action action1 = new Action(new Var("turn_on_bedroom_light"),
+                List.of(new DeviceProp(new Var("main_light"), new Var("power"))), List.of(set1));
+
+        SetStatement set2 = new SetStatement(new DeviceProp(new Var("bedroom_heater"), new Var("level")),
+                new NumberVal("level", "14", bedroomHeater.getType().getProperties().get(1)));
+
+        Action action2 = new Action(new Var("turn_up_heater"),
+                List.of(new DeviceProp(new Var("bedroom_light"), new Var("power"))), List.of(set2));
+
+        program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom, action1, action2));
+        eval.visit(null, program);
+
+        assertEquals(2, TestContext.getRooms().size());
+        assertEquals(2, TestContext.getActions().size());
+        assertEquals(5, Context.getDevices().size());
+
+        model.Device modelMainLight = Context.getDevice("main_light");
+        assertNotNull(modelMainLight);
+
+        model.Property lightPowerProp = modelMainLight.getProp("power");
+        assertNotNull(lightPowerProp);
+
+        lightPowerProp.mutate("ON");
+
+        List<String> prints = TestContext.getPrints();
+        assertEquals(2, prints.size());
+        assertEquals("Mutate failed due to invalid value.", prints.get(0));
+        assertEquals("power of bedroom_light has been changed to ON.", prints.get(1));
+    }
+
+    @Test
+    void testInvalidNumberVal() {
+
+        program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom));
+        eval.visit(null, program);
+
+        // asserts
+        assertEquals(2, TestContext.getRooms().size());
+        assertEquals(0, TestContext.getActions().size());
+        assertEquals(5, Context.getDevices().size());
+
+        // checking bedroom_heater to make sure initial level is 3
+        model.Device modelBedroomHeater = Context.getDevice("bedroom_heater");
+        assertNotNull(modelBedroomHeater);
+
+        model.Property bedroomHeaterLevel = modelBedroomHeater.getProp("level");
+        assertNotNull(bedroomHeaterLevel);
+        assertEquals("3", bedroomHeaterLevel.getValue());
+
+        bedroomHeaterLevel.mutate("14");
+
+        List<String> prints = TestContext.getPrints();
+        assertEquals(1, prints.size());
+        assertEquals("Mutate failed due to invalid value.", prints.get(0));
+
+
+
     }
 
     @Test
     void testFull() {
         // full set of actions representing a typical program
-    }
 
-//    @Test
-//    void UiChangeDevicePropertyTest() {
-//        // =============================================================================================================
-//        // setup electronicType supertype.
-//        // =============================================================================================================
-//        Var electronicPower = new Var("ELECTRONIC_POWER");
-//
-//        EnumType electronicPropType = new EnumType(electronicPower, List.of(new Var("ON"), new Var("OFF")));
-//
-//        Type electronicType = new Type(new Var("electronicType"), null, List.of(electronicPropType));
-//
-//        // =============================================================================================================
-//        // setup windowType and declare a window device
-//        // =============================================================================================================
-//
-//
-//        Var windowStatus = new Var("WINDOW_STATUS");
-//
-//        EnumType windowPropType = new EnumType(windowStatus, List.of(new Var("OPEN"), new Var("CLOSED")));
-//
-//        Type windowType = new Type(new Var("windowType"), null, List.of(windowPropType));
-//
-//        List<PropVal> windowInitialState = List.of(new EnumVal(windowStatus.getText(), new Var("OPEN"), windowPropType));
-//
-//        Var windowVar = new Var("Window");
-//        Device window = new Device(windowVar, windowType, windowInitialState);
-//
-//        // =============================================================================================================
-//        // setup tvType and declare TV device
-//        // =============================================================================================================
-//        Var volVar = new Var("VOLUME");
-//        Var disVar = new Var("DISPLAY_TEXT");
-//        NumberType vol = new NumberType(volVar, 0, 100);
-//        StringType dis = new StringType(disVar);
-//
-//
-//        Type tvType = new Type(new Var("tvType"), electronicType, List.of(vol, dis, electronicPropType));
-//
-//        List<PropVal> tvInitialStates = List.of(
-//                new EnumVal(electronicPower.getText(), new Var("OFF"), electronicPropType),
-//                new NumberVal(volVar.getText(), "50", vol),
-//                new StringVal(disVar.getText(), "DISPLAY TEST!!!", dis));
-//
-//        // Do not declare "POWER" enum because it inherits it from electronicType.
-//
-//        Var tvVar = new Var("Tv");
-//        Device tv = new Device(tvVar, tvType, tvInitialStates);
-//
-//        // =============================================================================================================
-//        // setup the room.
-//        // =============================================================================================================
-//        Room bedroom = new Room(new Var("Bedroom"), List.of(window, tv));
-//
-//        // =============================================================================================================
-//        // setup some statements for the tv.
-//        // =============================================================================================================
-//        SetStatement setTvOn = new SetStatement(new DeviceProp(tvVar, electronicPower),
-//                new EnumVal(electronicPower.getText(),
-//                        new Var("ON"), electronicPropType));
-//
-//
-//        SetStatement increaseTvVolume = new SetStatement(new DeviceProp(tvVar, volVar),
-//                new NumberVal(volVar.getText(), "90", vol));
-//
-//
-//        // =============================================================================================================
-//        // setup the if statement that will trigger the previous set statements for tv.
-//        // =============================================================================================================
-//        IfStatement ifWindowClosesSetTvOn = new IfStatement(new DeviceProp(windowVar, windowStatus),
-//                new EnumVal(windowStatus.getText(), new Var("CLOSED"), windowPropType), List.of(setTvOn, increaseTvVolume));
-//
-//        // =============================================================================================================
-//        // setup the Action.
-//        // =============================================================================================================
-//
-//        Action turnUpTvIfWindowCloses = new Action(new Var("Turn up TV if window closes"),
-//                List.of(new DeviceProp(windowVar, windowStatus)),
-//                List.of(ifWindowClosesSetTvOn));
-//
-//
-//
-//
-//        // =============================================================================================================
-//        // Start the program and populate the Model.Context for testing.
-//        // =============================================================================================================
-//
-//        List<Decl> decls = new ArrayList<>();
-//
-//        decls.add(electronicType);
-//        decls.add(windowType);
-//        decls.add(tvType);
-//        decls.add(bedroom);
-//        decls.add(turnUpTvIfWindowCloses);
-//
-//        Program program = new Program(decls);
-//        eval.visit(null, program);
-//
-//        HashMap<String, Set<String>> rooms =  TestContext.getRooms();
-//        HashMap<String, model.Device> devices = Context.getDevices();
-//        HashMap<String, model.Action> actions = TestContext.getActions();
-//
-//        String testInput = "Tv.ELECTRONIC_POWER\n" +
-//                "OFF\n" +
-//                "!q";
-//
-//        ByteArrayInputStream in = new ByteArrayInputStream(testInput.getBytes());
-//
-//        ByteArrayOutputStream out = new ByteArrayOutputStream();
-//
-//        // Get the bytes written to the ByteArrayOutputStream
-//        byte[] outputBytes = out.toByteArray();
-//
-//        // Convert the bytes to a string and print it
-//        String outputString = new String(outputBytes);
-//        System.out.println("Output from PrintStream: \n" + outputString);
-//    }
+        /*
+         * action turn_on_bedroom_light on main_light.power {
+         *     set bedroom_light.power to ON
+         * }
+         *
+         * action set_all_bedroom_lights_off_if_color_is_ababab on bedroom_light.power {
+         *     for power of Light in bedroom {
+         *         if Light.color is "ababab" {
+         *            set light.power to ON
+         *         }
+         *     }
+         * }
+         */
+
+        SetStatement set1 = new SetStatement(new DeviceProp(new Var("Light"), new Var("power")),
+                new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
+
+        IfStatement if1 = new IfStatement(new DeviceProp(new Var("Light"), new Var("color")),
+                new StringVal("color", "ababab", mainLight.getType().getProperties().getFirst()),
+                List.of(set1));
+
+        ForStatement for1 = new ForStatement(new Var("turn_off_all_bedroom_lights"), lightType, bedroom, List.of(if1));
+
+        Action action1 = new Action(new Var("set_all_bedroom_lights_off_if_color_is_ababab"),
+                List.of(new DeviceProp(new Var("bedroom_heater"), new Var("level"))), List.of(for1));
+
+
+        SetStatement set2 = new SetStatement(new DeviceProp(new Var("bedroom_heater"), new Var("level")),
+                new NumberVal("level", "0", bedroomLight.getType().getProperties().getFirst()));
+
+        Action action2 = new Action(new Var("set_heater_to_0_if_main_light-_changes"),
+                List.of(new DeviceProp(new Var("main_light"), new Var("power"))), List.of(for1));
+
+
+        program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom, action1, action2));
+        eval.visit(null, program);
+
+        assertEquals(2, TestContext.getRooms().size());
+        assertEquals(2, TestContext.getActions().size());
+        assertEquals(5, Context.getDevices().size());
+
+        model.Device modelMainLight = Context.getDevice("main_light");
+        assertNotNull(modelMainLight);
+
+        model.Property lightPowerProp = modelMainLight.getProp("power");
+        assertNotNull(lightPowerProp);
+
+        lightPowerProp.mutate("ON");
+
+        List<String> prints = TestContext.getPrints();
+        assertEquals(2, prints.size());
+
+
+
+    }
 }
