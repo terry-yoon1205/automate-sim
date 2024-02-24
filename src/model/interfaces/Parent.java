@@ -11,4 +11,8 @@ public abstract class Parent {
     public void add(Stmt s) {
         children.add(s);
     }
-}
+
+    public List<Stmt> getChildren() {
+        return children;
+    }
+ }

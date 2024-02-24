@@ -11,6 +11,7 @@ public abstract class Stmt extends Parent { // component of the composite patter
         this.prop = prop;
     }
 
+
     public void setDevice(String device) {
         this.device = device;
     }

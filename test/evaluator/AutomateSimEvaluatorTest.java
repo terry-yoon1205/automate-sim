@@ -66,12 +66,12 @@ public class AutomateSimEvaluatorTest {
          *  }
          */
         EnumVal bedroomLightPower = new EnumVal("power", new Var("OFF"), lightPower);
-        StringVal bedroomLightColor = new StringVal("level", "ffffff", lightColor);
+        StringVal bedroomLightColor = new StringVal("color", "ffffff", lightColor);
         bedroomLight = new Device(new Var("bedroom_light"), lightType,
                 List.of(bedroomLightPower, bedroomLightColor));
 
         EnumVal bedroomLampPower = new EnumVal("power", new Var("OFF"), smallLightPower);
-        StringVal bedroomLampColor = new StringVal("level", "ffebd9", lightColor);
+        StringVal bedroomLampColor = new StringVal("color", "ffebd9", lightColor);
         bedroomLamp = new Device(new Var("bedroom_lamp"), smallLightType,
                 List.of(bedroomLampPower, bedroomLampColor));
 
@@ -411,14 +411,14 @@ public class AutomateSimEvaluatorTest {
         // full set of actions representing a typical program
 
         /*
-         * action turn_on_bedroom_light on main_light.power {
+         * action turn_off_heater on main_light.power {
          *     set bedroom_light.power to ON
          * }
          *
-         * action set_all_bedroom_lights_off_if_color_is_ababab on bedroom_light.power {
-         *     for power of Light in bedroom {
-         *         if Light.color is "ababab" {
-         *            set light.power to ON
+         * action set_all_bedroom_lights_off_if_color_is_ffffff on bedroom_light.power {
+         *     for color of Light in bedroom {
+         *         if Light.color is "ffffff" {
+         *            set Light.power to ON
          *         }
          *     }
          * }
@@ -428,20 +428,20 @@ public class AutomateSimEvaluatorTest {
                 new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
 
         IfStatement if1 = new IfStatement(new DeviceProp(new Var("Light"), new Var("color")),
-                new StringVal("color", "ababab", mainLight.getType().getProperties().getFirst()),
+                new StringVal("color", "ffffff", mainLight.getType().getProperties().getFirst()),
                 List.of(set1));
 
         ForStatement for1 = new ForStatement(new Var("turn_off_all_bedroom_lights"), lightType, bedroom, List.of(if1));
 
-        Action action1 = new Action(new Var("set_all_bedroom_lights_off_if_color_is_ababab"),
+        Action action1 = new Action(new Var("set_all_bedroom_lights_off_if_color_is_ffffff"),
                 List.of(new DeviceProp(new Var("bedroom_heater"), new Var("level"))), List.of(for1));
 
 
         SetStatement set2 = new SetStatement(new DeviceProp(new Var("bedroom_heater"), new Var("level")),
                 new NumberVal("level", "0", bedroomLight.getType().getProperties().getFirst()));
 
-        Action action2 = new Action(new Var("set_heater_to_0_if_main_light-_changes"),
-                List.of(new DeviceProp(new Var("main_light"), new Var("power"))), List.of(for1));
+        Action action2 = new Action(new Var("turn_off_heater"),
+                List.of(new DeviceProp(new Var("main_light"), new Var("power"))), List.of(set2));
 
 
         program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom, action1, action2));
@@ -461,6 +461,23 @@ public class AutomateSimEvaluatorTest {
 
         List<String> prints = TestContext.getPrints();
         assertEquals(2, prints.size());
+        assertEquals("power of bedroom_light has been changed to ON.", prints.get(0));
+        assertEquals("level of bedroom_heater has been changed to 0.", prints.get(1));
+        TestContext.clear();
+
+        model.Device bedroomLamp = Context.getDevice("bedroom_lamp");
+        assertNotNull(bedroomLamp);
+
+        bedroomLamp.getProp("color").mutate("ffffff");
+        lightPowerProp.mutate("ON");
+
+        prints = TestContext.getPrints();
+        assertEquals(3, prints.size());
+        assertEquals("power of bedroom_light has been changed to ON.", prints.get(0));
+        assertEquals("power of bedroom_lamp has been changed to ON.", prints.get(1));
+        assertEquals("level of bedroom_heater has been changed to 0.", prints.get(2));
+
+
 
 
 

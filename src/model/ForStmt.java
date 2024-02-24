@@ -18,12 +18,25 @@ public class ForStmt extends Stmt { // composite of the composite pattern
         devices.add(device);
     }
 
+    public Stmt updateDevices(Stmt s, String deviceName) {
+        s.setDevice(deviceName);
+
+        if (s.getChildren() == null) {
+            return s;
+        }
+
+        for (Stmt childStmt: s.getChildren()) {
+            updateDevices(childStmt, deviceName);
+        }
+
+        return s;
+    }
+
     @Override
     public void execute() {
         for (String deviceName : devices) {
             for (Stmt s : children) {
-                s.setDevice(deviceName);
-                s.execute();
+                updateDevices(s, deviceName).execute();
             }
         }
     }
