@@ -454,8 +454,7 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
                 }
                 property = new EnumType(property.getName(), newStates);
                 names.put(property.getName().getText(), property);
-                properties.remove(duplicate);
-                properties.add(property);
+                properties.set(properties.indexOf(duplicate), property);
             } else if (duplicate != null) {
                 throw new ParserException("Duplicate property name: " + property.getName());
             } else {

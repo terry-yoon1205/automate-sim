@@ -370,7 +370,7 @@ public class ParserTest {
                 room Bedroom {
                     bedroom_switch of Switch(OFF)
                     bedroom_light of Light(OFF, "ffffff")
-                    bedroom_lamp of DimmableLight("ffffff", OFF)
+                    bedroom_lamp of DimmableLight(OFF, "ffffff")
                     bedroom_heater of Heater(0, OFF)
                 }
                 
