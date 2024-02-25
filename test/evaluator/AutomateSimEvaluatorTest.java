@@ -115,7 +115,8 @@ public class AutomateSimEvaluatorTest {
     @Test
     void testSimpleAction() {
         /*
-         * one simple action:
+         * one simple action
+         *
          * action turn_on_bedroom_light on main_light.power {
          *     set bedroom_light.power to ON
          * }
@@ -149,7 +150,8 @@ public class AutomateSimEvaluatorTest {
     @Test
     void testMultiplePropagatingActions() {
         /*
-         * two simple actions, where one triggers the other:
+         * two simple actions, where one triggers the other
+         *
          * action turn_on_bedroom_light on main_light.power {
          *     set bedroom_light.power to ON
          * }
@@ -158,7 +160,6 @@ public class AutomateSimEvaluatorTest {
          *     set bedroom_heater.level to 8
          * }
          */
-
         SetStatement set1 = new SetStatement(new DeviceProp(new Var("bedroom_light"), new Var("power")),
                 new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
 
@@ -193,16 +194,51 @@ public class AutomateSimEvaluatorTest {
     }
 
     @Test
+    void testActionWithMultipleTriggers() {
+        /*
+         * one action with multiple triggers:
+         *
+         * action turn_on_heater on [main_light.power, bedroom_light.power] {
+         *     set main_heater.power to ON
+         * }
+         */
+        SetStatement set = new SetStatement(new DeviceProp(new Var("main_heater"), new Var("power")),
+                new EnumVal("power", new Var("ON"), mainHeater.getType().getProperties().getFirst()));
+
+        Action action = new Action(new Var("turn_on_heater"),
+                List.of(new DeviceProp(new Var("main_light"), new Var("power")),
+                        new DeviceProp(new Var("bedroom_light"), new Var("power"))), List.of(set));
+
+        program = new Program(List.of(lightType, smallLightType, heaterType, bedroom, livingRoom, action));
+        eval.visit(null, program);
+
+        model.Property mainLightPowerProp = Context.getDevice("main_light").getProp("power");
+        model.Property bedroomLightPowerProp = Context.getDevice("bedroom_light").getProp("power");
+
+        mainLightPowerProp.mutate("ON");
+
+        List<String> prints = TestContext.getPrints();
+        assertEquals(1, prints.size());
+        assertEquals("power of main_heater has been changed to ON.", prints.getFirst());
+
+        TestContext.clearPrints();
+        bedroomLightPowerProp.mutate("ON");
+
+        assertEquals(1, prints.size());
+        assertEquals("power of main_heater has been changed to ON.", prints.getFirst());
+    }
+
+    @Test
     void testIfStmtAction() {
         /*
-         * action with if-condition:
+         * action with if-condition
+         *
          * action turn_on_bedroom_light on main_light.power {
          *     if main_light.power is OFF {
          *        set bedroom_light.power to ON
          *     }
          * }
          */
-
         SetStatement set1 = new SetStatement(new DeviceProp(new Var("bedroom_light"), new Var("power")),
                 new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
 
@@ -241,14 +277,14 @@ public class AutomateSimEvaluatorTest {
     @Test
     void testForStmtAction() {
         /*
-         * action with for-loop:
-         * action turn_on_bedroom_light on main_light.power { // this should turn off all Type light objects and it's children!
+         * action with for-loop
+         *
+         * action turn_on_bedroom_light on main_light.power {
          *     if main_light.power is OFF {
          *        set bedroom_light.power to ON
          *     }
          * }
          */
-
         SetStatement set1 = new SetStatement(new DeviceProp(new Var("Light"), new Var("power")),
                 new EnumVal("power", new Var("ON"), bedroomLight.getType().getProperties().getFirst()));
 
@@ -369,7 +405,8 @@ public class AutomateSimEvaluatorTest {
         assertEquals(2, prints.size());
         assertEquals("power of bedroom_light has been changed to ON.", prints.get(0));
         assertEquals("level of bedroom_heater has been changed to 0.", prints.get(1));
-        TestContext.clear();
+
+        TestContext.clearPrints();
 
         model.Device bedroomLamp = Context.getDevice("bedroom_lamp");
         assertNotNull(bedroomLamp);

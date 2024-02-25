@@ -49,6 +49,10 @@ public class TestContext {
         return prints;
     }
 
+    public static void clearPrints() {
+        prints.clear();
+    }
+
 
     public static void clear() {
         rooms.clear();
