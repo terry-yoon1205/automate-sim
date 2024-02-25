@@ -19,11 +19,12 @@ public class Device {
     public Property getProp(String name) {
         return props.get(name);
     }
-    public Set<String> getProps(){return props.keySet(); }
+
+    public Set<String> getProps() {
+        return props.keySet();
+    }
 
     public void addProp(Property prop) {
         props.put(prop.getName(), prop);
     }
-
-
 }

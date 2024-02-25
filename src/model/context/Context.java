@@ -9,11 +9,6 @@ public class Context {
     private static final HashMap<String, Device> devices = new HashMap<>();
     private static final HashMap<String, Type> types = new HashMap<>();
 
-    public static void addType(Type type) {types.put(type.getName().getText(), type); }
-
-
-
-
     public static void addDevice(Device device) {
         devices.put(device.getName(), device);
     }
@@ -24,6 +19,10 @@ public class Context {
 
     public static HashMap<String, Device> getDevices() {
         return devices;
+    }
+
+    public static void addType(Type type) {
+        types.put(type.getName().getText(), type);
     }
 
     public static HashMap<String, Type> getTypes() {
