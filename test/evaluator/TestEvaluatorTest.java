@@ -1,7 +1,6 @@
-package EvaluatorTest;
+package evaluator;
 
 import ast.*;
-import evaluator.TestEvaluator;
 import model.context.Context;
 
 import model.IfStmt;
@@ -17,7 +16,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class EvaluatorTest {
+public class TestEvaluatorTest {
     @Test
     void basicRoomDecl() {
         // =============================================================================================================
@@ -120,6 +119,7 @@ public class EvaluatorTest {
 
         String output = stringBuilder.toString();
 
+
         System.out.println(output);
 
         HashMap<String, Set<String>> rooms =  TestContext.getRooms();
@@ -182,15 +182,5 @@ public class EvaluatorTest {
 
         assertNotNull(windowClose);
         assertEquals("CLOSED", windowClose.getVal());
-
-
-//        assertTrue(output.contains(electronicType.getName().getText()));
-//        assertTrue(output.contains(lampOff.getText()));
-//        assertTrue(output.contains(windowStatus.getText()));
-//        assertTrue(output.contains(windowVar.getText()));
-//        assertTrue(output.contains(tvType.getName().getText()));
-//        assertTrue(output.contains(tv.getName().getText()));
-//        assertTrue(output.contains(bedroom.getName().getText()));
-//        assertTrue(output.contains(turnOnTv.getName().getText()));
     }
 }

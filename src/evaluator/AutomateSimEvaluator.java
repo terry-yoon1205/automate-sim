@@ -5,6 +5,7 @@ import ast.Action;
 import ast.Device;
 import model.*;
 import model.context.Context;
+import model.context.TestContext;
 import model.interfaces.Parent;
 
 import java.util.HashSet;
@@ -29,6 +30,9 @@ public class AutomateSimEvaluator extends AutomateSimBaseVisitor<Parent, Propert
             s.accept(action, this);
         }
 
+        /* TESTING */
+        TestContext.addAction(p.getName().getText(), action);
+
         return null;
     }
 
@@ -41,7 +45,17 @@ public class AutomateSimEvaluator extends AutomateSimBaseVisitor<Parent, Propert
 
     @Override
     public Property visit(Parent parent, Room p) {
-        // room information is also not retained in the program
+        String roomName = p.getName().getText();
+        Set<String> deviceNames = new HashSet<>();
+
+        for (Device d : p.getDevices()) {
+            deviceNames.add(d.getName().getText());
+            d.accept(parent, this);
+        }
+
+        /* TESTING */
+        TestContext.addRoom(roomName, deviceNames);
+
         return null;
     }
 
@@ -129,7 +143,7 @@ public class AutomateSimEvaluator extends AutomateSimBaseVisitor<Parent, Propert
         // add devices of the specified type in that are in the specified room
         for (Device d : p.getRoom().getDevices()) {
             Type deviceType = d.getType();
-            boolean typeMatch = false;
+            boolean typeMatch = p.getType() == deviceType;
 
             while ((deviceType = deviceType.getSupertype()) != null) {
                 if (deviceType == p.getType()) {

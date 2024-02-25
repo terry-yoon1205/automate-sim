@@ -5,10 +5,14 @@ import model.Stmt;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface Parent {
-    List<Stmt> children = new ArrayList<>();
+public abstract class Parent {
+    protected List<Stmt> children;
 
-    default void add(Stmt s) {
+    public void add(Stmt s) {
         children.add(s);
     }
-}
+
+    public List<Stmt> getChildren() {
+        return children;
+    }
+ }

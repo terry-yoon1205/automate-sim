@@ -3,13 +3,12 @@ package lexer;
 import org.antlr.runtime.MismatchedTokenException;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.Token;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import parser.AutomateSimLexer;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class LexerTest {
 

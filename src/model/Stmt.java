@@ -1,6 +1,8 @@
 package model;
 
-public abstract class Stmt { // component of the composite pattern
+import model.interfaces.Parent;
+
+public abstract class Stmt extends Parent { // component of the composite pattern
     protected String device;
     protected String prop;
 
@@ -8,6 +10,7 @@ public abstract class Stmt { // component of the composite pattern
         this.device = device;
         this.prop = prop;
     }
+
 
     public void setDevice(String device) {
         this.device = device;
