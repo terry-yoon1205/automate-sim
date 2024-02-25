@@ -394,7 +394,7 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
                     throw new ParserException(value + " out of bounds " + "[" + min + ", " + max + "]");
                 }
             } catch (NumberFormatException e){
-                throw new ParserException("Please provide two valid integer separate with an comma");
+                throw new ParserException("Unable to pare integer");
             }
 
             NumberVal num = new NumberVal(dp.getProp().getText(), ctx.NUM().getText(), deviceProperty.getType());
