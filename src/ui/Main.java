@@ -16,12 +16,9 @@ import java.io.IOException;
 import java.util.List;
 
 public class Main {
-
     private static final String FILE_PATH = "code.txt";
 
     public static void main(String[] args) {
-//        setUpAst();
-//        setUpProgram();
         readFile();
 
         AutomateSim sim = new AutomateSim();
@@ -56,6 +53,4 @@ public class Main {
         AutomateSimEvaluator eval = new AutomateSimEvaluator();
         eval.visit(null, program);
     }
-
-
 }

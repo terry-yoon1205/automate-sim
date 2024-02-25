@@ -17,7 +17,7 @@ public class AutomateSim {
     private final HashMap<String, Type> propTypes = Context.getTypes();
 
     private void displayTypes() {
-        System.out.println("Available Types:");
+        System.out.println("Available types:");
 
         for (String typeName : propTypes.keySet()) {
             Type type = propTypes.get(typeName);
@@ -25,14 +25,14 @@ public class AutomateSim {
             System.out.println("  Properties:");
 
             for (PropType propType : type.getProperties()) {
-                System.out.println("    - " + propType.getName() + " (" + propType.getClass().getSimpleName() + ")");
+                System.out.println("    - " + propType.getName() + " (" + propType.getTypeName() + ")");
             }
 
             Type supertype = type.getSupertype();
             if (supertype != null) {
-                System.out.println("  Supertype: " + supertype.getName());
+                System.out.println("  Inherits from: " + supertype.getName());
             } else {
-                System.out.println("  Supertype: None");
+                System.out.println("  Inherits from: None");
             }
         }
 
@@ -103,7 +103,7 @@ public class AutomateSim {
         if (devices.isEmpty()) {
             System.out.println("No devices found, please make sure devices have been added.");
         } else {
-            System.out.print("Available Devices: ");
+            System.out.print("Available devices: ");
 
             String names = String.join(", ", devices.keySet());
             System.out.println("[" + names + "]");
