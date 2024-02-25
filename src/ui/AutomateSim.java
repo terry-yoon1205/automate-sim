@@ -3,7 +3,9 @@ package ui;
 import model.*;
 import model.context.Context;
 
+import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Set;
 
 // final output of evaluation. the program can be run by calling run()
 public class AutomateSim {
@@ -11,6 +13,21 @@ public class AutomateSim {
 
     public void run() {
         System.out.println("What property would you like to change? (<device name>.<property name>)");
+        HashMap<String, Device> devices = Context.getDevices();
+        if(devices.isEmpty()){
+            System.out.println("No devices found, please make sure devices have been added.");
+        }else{
+            System.out.print("Available Devices: ");
+            System.out.print("[");
+            for (String deviceName : devices.keySet()) {
+                System.out.print(deviceName);
+                if (!deviceName.equals(devices.keySet().toArray()[devices.size() - 1])) {
+                    System.out.print(", ");
+                }
+            }
+            System.out.println("]");
+        }
+
         System.out.println("Or type !q to quit.");
 
         String in = input.next();
@@ -48,6 +65,18 @@ public class AutomateSim {
             String error = String.format("The property %s does not exist on the device %s. Please try again. " +
                     "(<device name>.<property name>)", propName, deviceName);
             System.out.println(error);
+
+            Set<String> props = device.getProps();
+            System.out.println("Valid properties: ");
+            System.out.print("[");
+
+            for (String iterPropName : props) {
+                System.out.print(iterPropName);
+                if (!iterPropName.equals(props.toArray()[props.size() - 1])) {
+                    System.out.print(", ");
+                }
+            }
+            System.out.println("]");
             return typePropName(input.next());
         }
 
