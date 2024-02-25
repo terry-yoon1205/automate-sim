@@ -17,21 +17,21 @@ public class AutomateSimEvaluatorTest {
     public Program program;
 
     // types
-    public static Type lightType;
-    public static Type smallLightType;
-    public static Type heaterType;
+    public Type lightType;
+    public Type smallLightType;
+    public Type heaterType;
 
     // rooms
-    public static Room bedroom;
-    public static Room livingRoom;
+    public Room bedroom;
+    public Room livingRoom;
 
     // devices
-    public static Device bedroomLight;
-    public static Device bedroomLamp;
-    public static Device bedroomHeater;
+    public Device bedroomLight;
+    public Device bedroomLamp;
+    public Device bedroomHeater;
 
-    public static Device mainLight;
-    public static Device mainHeater;
+    public Device mainLight;
+    public Device mainHeater;
 
     @BeforeEach
     public void setUpAst() {
@@ -359,10 +359,10 @@ public class AutomateSimEvaluatorTest {
          *     set bedroom_light.power to ON
          * }
          *
-         * action set_all_bedroom_lights_off_if_color_is_ffffff on bedroom_light.power {
-         *     for color of Light in bedroom {
-         *         if Light.color is "ffffff" {
-         *            set Light.power to ON
+         * action set_all_bedroom_lights_off on bedroom_light.power {
+         *     for light of Light in bedroom {
+         *         if light.color is "ffffff" {
+         *            set light.power to ON
          *         }
          *     }
          * }
