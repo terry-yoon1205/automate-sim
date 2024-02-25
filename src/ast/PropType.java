@@ -7,4 +7,6 @@ public abstract class PropType extends Node {
     public Var getName() {
         return name;
     }
+
+    public abstract String getTypeName();
 }

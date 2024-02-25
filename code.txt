@@ -1,0 +1,22 @@
+type Light { enum power [ON, OFF] string color }
+type SmallLight inherits Light { enum power [DIMMED] }
+type Heater { enum power [ON, OFF] number level [0, 10] }
+
+
+room bedroom {
+    bedroom_light of Light(OFF, "ffffff")
+    bedroom_heater of Heater(OFF, 3)
+}
+
+room living_room {
+    main_light of Light(OFF, "ffffff")
+    main_heater of Heater(OFF, 3)
+}
+
+action turn_on_bedroom_light on main_light.power {
+    set bedroom_light.power to ON
+}
+
+action turn_up_heater on bedroom_light.power {
+    set bedroom_heater.level to 8
+}

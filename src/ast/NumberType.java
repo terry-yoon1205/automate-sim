@@ -19,6 +19,11 @@ public class NumberType extends PropType {
     }
 
     @Override
+    public String getTypeName() {
+        return "number";
+    }
+
+    @Override
     public <C, T> T accept(C context, Visitor<C, T> v) {
         return v.visit(context, this);
     }
