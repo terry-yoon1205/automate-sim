@@ -38,8 +38,8 @@ public class AutomateSimEvaluator extends AutomateSimBaseVisitor<Parent, Propert
 
     @Override
     public Property visit(Parent parent, Type p) {
-        // type information is not retained in the program
         // only used during checks and evaluation
+        Context.addType(p);
         return null;
     }
 

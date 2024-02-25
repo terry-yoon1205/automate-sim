@@ -1,5 +1,7 @@
 package ui;
 
+import ast.PropType;
+import ast.Type;
 import model.*;
 import model.context.Context;
 
@@ -7,16 +9,49 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Set;
 
+
 // final output of evaluation. the program can be run by calling run()
 public class AutomateSim {
     private final Scanner input = new Scanner(System.in);
+    HashMap<String, Device> devices;
+    HashMap<String, Type> propTypes;
+
+    public AutomateSim() {
+        devices = Context.getDevices();
+        propTypes = Context.getTypes();
+
+
+    }
+
+    private void displayTypes() {
+        System.out.println("Available Types:");
+        for (String typeName : propTypes.keySet()) {
+            Type type = propTypes.get(typeName);
+            System.out.println("- " + typeName);
+            System.out.println("  Properties:");
+            for (PropType propType : type.getProperties()) {
+                System.out.println("    - " + propType.getName() + " (" + propType.getClass().getSimpleName() + ")");
+            }
+            Type supertype = type.getSupertype();
+            if (supertype != null) {
+                System.out.println("  Supertype: " + supertype.getName());
+            } else {
+                System.out.println("  Supertype: None");
+            }
+        }
+    }
+
 
     public void run() {
-        System.out.println("What property would you like to change? (<device name>.<property name>)");
-        HashMap<String, Device> devices = Context.getDevices();
-        if(devices.isEmpty()){
+        System.out.println("Available commands: ");
+        System.out.println("To change a property, type '!set <device name>.<property name>'");
+        System.out.println("To see available types and their properties, type '!types'");
+        System.out.println("To see properties of a device, type '!props <device name>'");
+        System.out.println("Or type '!q' to quit.");
+
+        if (devices.isEmpty()) {
             System.out.println("No devices found, please make sure devices have been added.");
-        }else{
+        } else {
             System.out.print("Available Devices: ");
             System.out.print("[");
             for (String deviceName : devices.keySet()) {
@@ -28,15 +63,54 @@ public class AutomateSim {
             System.out.println("]");
         }
 
-        System.out.println("Or type !q to quit.");
-
-        String in = input.next();
-        if (in.strip().equals("!q")) {
+        String in = input.nextLine().strip();
+        if (in.equals("!q")) {
             return;
+        } else if (in.equals("!types")) {
+            displayTypes();
+        } else if (in.startsWith("!props")) {
+            String[] parts = in.split(" ");
+            if (parts.length == 2) {
+                String deviceName = parts[1].strip();
+                Device device = devices.get(deviceName);
+                if (device != null) {
+                    System.out.println("Properties of device '" + deviceName + "':");
+                    for (String propName : device.getProps()) {
+                        System.out.println("- " + propName);
+                    }
+                } else {
+                    System.out.println("Device '" + deviceName + "' not found.");
+                }
+            } else {
+                System.out.println("Invalid command format. Please use '!props <device name>'.");
+            }
+        } else if (in.startsWith("!set")) {
+            String[] parts = in.split(" ");
+            if (parts.length == 2) {
+                String[] subParts = parts[1].split("\\.");
+                if (subParts.length == 2) {
+                    String deviceName = subParts[0].strip();
+                    String propName = subParts[1].strip();
+                    Device device = devices.get(deviceName);
+                    if (device != null) {
+                        Property prop = device.getProp(propName);
+                        if (prop != null) {
+                            typePropValue(prop);
+                        } else {
+                            System.out.println("Property '" + propName + "' does not exist on device '" + deviceName + "'.");
+                        }
+                    } else {
+                        System.out.println("Device '" + deviceName + "' not found.");
+                    }
+                } else {
+                    System.out.println("Invalid command format. Please use '!set <device name>.<property name>'.");
+                }
+            } else {
+                System.out.println("Invalid command format. Please use '!set <device name>.<property name>'.");
+            }
+        } else {
+            System.out.println("Invalid command.");
         }
-
-        Property prop = typePropName(in);
-        typePropValue(prop);
 
         run();
     }
