@@ -14,7 +14,6 @@ public abstract class Property extends Subject {
 
     public boolean mutate(String value) {
         if (!isValid(value)) {
-            TestContext.print("Mutate failed due to invalid value.");
             return false;
         }
 

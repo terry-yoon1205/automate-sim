@@ -19,8 +19,6 @@ public class AutomateSim {
         }
 
         Property prop = typePropName(in);
-
-        System.out.println("What value would you like to change it to?");
         typePropValue(prop);
 
         run();
@@ -57,6 +55,7 @@ public class AutomateSim {
     }
 
     private void typePropValue(Property prop) {
+        System.out.println("What value would you like to change it to?");
         String in = input.next();
 
         if (!prop.mutate(in)) {
