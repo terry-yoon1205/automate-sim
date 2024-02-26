@@ -163,22 +163,39 @@ public class ParseTreeToAST extends AutomateSimParserBaseVisitor<Node> {
             throw new ParserException("Room " + ctx.VAR(2).getText() + " does not exists");
         }
         List<Statement> statements = new ArrayList<>();
-        Set<Device> includedDevices = new HashSet<>();
-        for (Device d : room.getDevices()) {
-            if (d.getType().equals(type) || (d.getType().getSupertype() != null && d.getType().getSupertype().equals(type))) {
-                includedDevices.add(d);
+//        Set<Device> includedDevices = new HashSet<>();
+//        for (Device d : room.getDevices()) {
+//            if (d.getType().equals(type) || (d.getType().getSupertype() != null && d.getType().getSupertype().equals(type))) {
+//                includedDevices.add(d);
+//            }
+//        }
+//
+//        for (Device d : includedDevices) {
+//            for (AutomateSimParser.StatementContext statement : ctx.statement()) {
+//
+//                AutomateSimParser.Device_propContext devContext = (AutomateSimParser.Device_propContext) statement.getChild(0).getChild(1);
+//                devContext.children.removeFirst();
+//                devContext.children.addFirst(new TerminalNodeImpl(new CommonToken(27, d.getName().getText())));
+//
+//                statements.add((Statement) visitStatement(statement));
+//            }
+//        }
+        List<PropVal> temp = null;
+        for (Device d: addedDevice.values()) {
+            if (d.getType().equals(type)) {
+                List<PropVal> copy = new ArrayList<>(d.getValues());
+                temp = copy;
             }
         }
+        if (temp == null) {
+            throw new ParserException("There are no devices of type " + type.getName().getText());
+        }
 
-        for (Device d : includedDevices) {
-            for (AutomateSimParser.StatementContext statement : ctx.statement()) {
+        Device forDeviceAlias = new Device(name, type, temp);
+        addedDevice.put(name.getText(), forDeviceAlias);
 
-                AutomateSimParser.Device_propContext devContext = (AutomateSimParser.Device_propContext) statement.getChild(0).getChild(1);
-                devContext.children.removeFirst();
-                devContext.children.addFirst(new TerminalNodeImpl(new CommonToken(27, d.getName().getText())));
-
-                statements.add((Statement) visitStatement(statement));
-            }
+        for (AutomateSimParser.StatementContext statement : ctx.statement()) {
+            statements.add((Statement) visitStatement(statement));
         }
 
         return new ForStatement(name, type, room, statements);
