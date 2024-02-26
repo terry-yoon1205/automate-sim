@@ -110,6 +110,11 @@ public class AutomateSim {
         }
 
         String in = input.nextLine().strip();
+        
+        if(in.isEmpty()){
+            in = input.nextLine().strip();
+        }
+        
         if (in.equals("!q")) {
             return;
         } else if (in.equals("!types")) {
